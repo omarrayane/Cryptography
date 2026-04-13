@@ -1,7 +1,6 @@
 import numpy as np
 from typing import List, Tuple
 
-# ======== OUTIL UTILISÉ PAR HILL (DÉJÀ VU DANS AFFINE) ========
 def inverse_modulaire(a: int, m: int):
     a = a % m
     for x in range(1, m):
@@ -10,9 +9,8 @@ def inverse_modulaire(a: int, m: int):
     return None
 
 
-# ======== CHIFFRE DE HILL ========
 def matrix_mod_inverse(matrix: np.ndarray, modulus: int) -> np.ndarray:
-    """Calcule l'inverse modulaire d'une matrice."""
+    
     det = int(round(np.linalg.det(matrix))) % modulus
     det_inv = inverse_modulaire(det, modulus)
 
@@ -33,7 +31,7 @@ def matrix_mod_inverse(matrix: np.ndarray, modulus: int) -> np.ndarray:
 
 
 def hill_encrypt(text: str, key_matrix: np.ndarray) -> str:
-    """Chiffrement de Hill."""
+    
     n = key_matrix.shape[0]
 
     text = ''.join(c for c in text if c.isalpha()).lower()
@@ -56,7 +54,7 @@ def hill_encrypt(text: str, key_matrix: np.ndarray) -> str:
 
 
 def hill_decrypt(text: str, key_matrix: np.ndarray) -> str:
-    """Déchiffrement de Hill."""
+    
     inverse_key = matrix_mod_inverse(key_matrix, 26)
     return hill_encrypt(text, inverse_key)
 
@@ -140,7 +138,6 @@ def playfair_decrypt(text: str, key: str) -> str:
     return result
 
 
-# ======== TEST ========
 if __name__ == "__main__":
     print("===== TEST HILL =====")
     key_matrix = np.array([[3, 3], [2, 5]])

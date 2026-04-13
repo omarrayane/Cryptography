@@ -1,7 +1,6 @@
-# ======== CHIFFRE DE VIGENÈRE ========
+
 
 def vigenere_encrypt(text: str, key: str) -> str:
-    """Chiffrement de Vigenère."""
     result = ""
     key = key.upper()
     key_length = len(key)
@@ -23,7 +22,6 @@ def vigenere_encrypt(text: str, key: str) -> str:
 
 
 def vigenere_decrypt(text: str, key: str) -> str:
-    """Déchiffrement de Vigenère."""
     result = ""
     key = key.upper()
     key_length = len(key)
@@ -44,7 +42,7 @@ def vigenere_decrypt(text: str, key: str) -> str:
     return result
 
 
-# ======== TEST ========
+
 if __name__ == "__main__":
     message = "Hello World"
     key = "KEY"

@@ -1,18 +1,14 @@
 import math
 from typing import Optional
 
-# ======== CHIFFREMENT AFFINE ========
-
-# (Optionnel) Au cas où ton prof te demande comment calculer le PGCD et l'inverse manuellement
-# sans utiliser de librairie prete a l'emploi, tu peux lui montrer ces fonctions.
 def pgcd_manuel(a: int, b: int) -> int:
-    """Calcule le PGCD de deux nombres."""
+    
     while b:
         a, b = b, a % b
     return a
 
 def inverse_modulaire_manuel(a: int, m: int) -> Optional[int]:
-    """Calcule l'inverse modulaire de a modulo m."""
+
     if pgcd_manuel(a, m) != 1:
         return None
     u1, u2, u3 = 1, 0, a
@@ -22,14 +18,13 @@ def inverse_modulaire_manuel(a: int, m: int) -> Optional[int]:
         v1, v2, v3, u1, u2, u3 = (u1 - q * v1), (u2 - q * v2), (u3 - q * v3), v1, v2, v3
     return u1 % m
 
-# ======== FONCTIONS PRINCIPALES ========
 
 def affine_encrypt(text: str, a: int, b: int) -> str:
-    """Chiffrement affine E(x) = (ax + b) mod 26."""
+
     result = ""
     for char in text:
         if char.isalpha():
-            # Respecte les majuscules et les minuscules au lieu de tout forcer
+            
             ascii_offset = ord('A') if char.isupper() else ord('a')
             x = ord(char) - ascii_offset
             y = (a * x + b) % 26
@@ -39,8 +34,8 @@ def affine_encrypt(text: str, a: int, b: int) -> str:
     return result
 
 def affine_decrypt(text: str, a: int, b: int) -> str:
-    """Déchiffrement affine D(y) = a^(-1) * (y - b) mod 26."""
-    # pow(a, -1, 26) natif de Python : ultra rapide et pro !
+    
+
     try:
         a_inv = pow(a, -1, 26)  
     except ValueError:
@@ -60,7 +55,7 @@ def affine_decrypt(text: str, a: int, b: int) -> str:
 def main():
     print("===================================== Méthode de chiffrement Affine ================================")
     while True:
-        # \033[0m a été ajouté en fin de ligne pour réinitialiser la couleur et ne pas bugger le terminal
+    
         print("\n\033[32m 1. Taper 1 si vous voulez chiffrer un texte \033[0m")
         print("\033[34m 2. Taper 2 si vous voulez déchiffrer un texte \033[0m")
         print("\033[33m 3. Taper q si vous voulez quittez \033[0m")
@@ -102,6 +97,7 @@ def main():
             print("Merci d'avoir utilisé notre programme de chiffrement Affine. Au revoir!")
             break
         else:
+            
             print("\033[31m!! Choix invalide. Veuillez réessayer !!\033[0m")
 
 if __name__ == "__main__":
