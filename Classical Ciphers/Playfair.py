@@ -79,53 +79,14 @@ def playfair_decrypt(text: str, key: str) -> str:
     return result
 
 
-def afficher_menu():
-    print("-" * 50)
-    print("      CHIFFREMENT DE PLAYFAIR")
-    print("-" * 50)
-    print("1. Chiffrer un texte")
-    print("2. Déchiffrer un texte")
-    print("3. Quitter")
-    print("-" * 50)
-
-
 if __name__ == "__main__":
+    print("\n===== TEST PLAYFAIR =====")
+    key = "security"
+    message = "hello world"
 
-    while True:
-        afficher_menu()
+    encrypted_pf = playfair_encrypt(message, key)
+    decrypted_pf = playfair_decrypt(encrypted_pf, key)
 
-        try:
-            choix = int(input("Choisissez une option : "))
-            print("-" * 50)
-
-            if choix == 3:
-                print("Au revoir !")
-                print("-" * 50)
-                break
-
-            if choix not in [1, 2]:
-                print("Option invalide.")
-                continue
-
-            cle = input("Entrez la clé : ").strip()
-            if not cle:
-                raise ValueError("La clé ne peut pas être vide.")
-            print("-" * 50)
-
-            if choix == 1:
-                texte = input("Entrez le texte à chiffrer : ")
-                resultat = playfair_encrypt(texte, cle)
-                print("Texte chiffré :")
-                print(resultat)
-
-            elif choix == 2:
-                texte = input("Entrez le texte à déchiffrer : ")
-                resultat = playfair_decrypt(texte, cle)
-                print("Texte déchiffré :")
-                print(resultat)
-
-            print("-" * 50)
-
-        except ValueError as e:
-            print("Erreur :", e)
-            print("-" * 50)
+    print("Original :", message)
+    print("Chiffré  :", encrypted_pf)
+    print("Déchiffré:", decrypted_pf)
