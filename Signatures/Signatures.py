@@ -604,7 +604,7 @@ def demonstrate_malleability():
 if __name__ == "__main__":
     print("="*60)
     print("TP5 - SIGNATURES NUMÉRIQUES")
-    print="="*60)
+    print("="*60)
     
     # Exécution des tests
     test_rsa_signature()
