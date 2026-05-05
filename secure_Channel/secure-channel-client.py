@@ -1,6 +1,6 @@
 """
 client.py - Client qui envoie des messages chiffrés au serveur
-Se connecte au serveur et communique de manière bidirectionnelle
+VERSION AVEC DEBUG LOGGING - Voir le chiffrement en action!
 """
 
 import socket
@@ -10,11 +10,14 @@ from crypto_utils import CryptoTools, create_secure_packet, parse_secure_packet
 
 
 # Configuration
-SERVER_HOST = 'localhost'  # IP du serveur
+SERVER_HOST = 'localhost'  # Changez si serveur sur autre machine
 SERVER_PORT = 65432
 
 CLIENT_PRIVATE_KEY = "client_private_key.pem"
 SERVER_PUBLIC_KEY = "server_public_key.pem"
+
+# 🔧 DEBUG MODE - Affiche les données chiffrées
+DEBUG_MODE = True
 
 
 def save_message(message, filename="client_messages.txt"):
@@ -32,13 +35,36 @@ def receive_messages(sock, client_private_key, server_public_key):
                 print("[*] Serveur a fermé la connexion")
                 break
             
+            # =========== DEBUG: AFFICHER LES DONNÉES CHIFFRÉES ===========
+            if DEBUG_MODE:
+                print("\n" + "=" * 70)
+                print("🔍 DEBUG - DONNÉES CHIFFRÉES REÇUES")
+                print("=" * 70)
+                print(f"[*] Taille totale du paquet: {len(data)} bytes")
+                print(f"[*] Premier 64 bytes (HEX): {data[:64].hex()}")
+                print(f"[*] Premier 64 bytes (RAW): {data[:64]}")
+                print("[*] → Les données NE SONT PAS lisibles (bien chiffré!)")
+                print("=" * 70)
+            # ============================================================
+            
             plaintext, signature_valid = parse_secure_packet(
                 data,
                 client_private_key,
                 server_public_key
             )
             
-            print(f"\n[Server]: {plaintext}")
+            # =========== DEBUG: AFFICHER APRÈS DÉCHIFFREMENT ===========
+            if DEBUG_MODE:
+                print("\n" + "=" * 70)
+                print("🔓 DEBUG - APRÈS DÉCHIFFREMENT")
+                print("=" * 70)
+                print(f"[✓] Message déchiffré avec succès!")
+                print(f"[✓] Signature: {'VALIDE ✅' if signature_valid else 'INVALIDE ❌'}")
+                print(f"[*] Contenu: {plaintext}")
+                print("=" * 70 + "\n")
+            # ============================================================
+            
+            print(f"[Server]: {plaintext}")
             if signature_valid:
                 print("[✓] Signature valide")
             else:
@@ -63,8 +89,31 @@ def send_messages(sock, client_private_key, server_public_key):
                 sock.close()
                 break
             
+            # =========== DEBUG: AVANT CHIFFREMENT ===========
+            if DEBUG_MODE:
+                print("\n" + "=" * 70)
+                print("🔒 DEBUG - AVANT CHIFFREMENT")
+                print("=" * 70)
+                print(f"[*] Message original: '{message}'")
+                print(f"[*] Taille originale: {len(message)} bytes")
+                print("=" * 70)
+            # ==============================================
+            
             # Créer et envoyer le paquet sécurisé
             packet = create_secure_packet(message, client_private_key, server_public_key)
+            
+            # =========== DEBUG: APRÈS CHIFFREMENT ===========
+            if DEBUG_MODE:
+                print("\n" + "=" * 70)
+                print("🔐 DEBUG - PAQUET CHIFFRÉ")
+                print("=" * 70)
+                print(f"[*] Taille après chiffrement: {len(packet)} bytes")
+                print(f"[*] Overhead de chiffrement: {len(packet) - len(message)} bytes")
+                print(f"[*] Premier 64 bytes (HEX): {packet[:64].hex()}")
+                print(f"[*] → Les données sont illisibles (bien chiffré!)")
+                print("=" * 70 + "\n")
+            # ==============================================
+            
             sock.sendall(packet)
             
             save_message(f"ENVOYÉ au serveur: {message}", "client_messages.txt")
@@ -79,6 +128,11 @@ def main():
     """Programme principal"""
     print("[*] Client se connecte au serveur...")
     
+    if DEBUG_MODE:
+        print("\n" + "🔧 MODE DEBUG ACTIVÉ 🔧".center(70))
+        print("Les données chiffrées et déchiffrées seront affichées".center(70))
+        print("=" * 70 + "\n")
+    
     try:
         # Charger les clés
         print("[*] Chargement des clés...")
@@ -89,7 +143,7 @@ def main():
         # Se connecter au serveur
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((SERVER_HOST, SERVER_PORT))
-        print(f"[+] Connecté au serveur sur {SERVER_HOST}:{SERVER_PORT}")
+        print(f"[+] Connecté au serveur sur {SERVER_HOST}:{SERVER_PORT}\n")
         
         # Thread de réception
         recv_thread = threading.Thread(
