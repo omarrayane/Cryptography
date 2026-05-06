@@ -1,304 +1,175 @@
-# RC4.py
+# RC4.py - Utilisation de pycryptodome
 # ============================================================
 
+from Crypto.Cipher import ARC4
 import hashlib
+import os
+from collections import Counter
+import matplotlib.pyplot as plt
 
-# ============================================================
-#  RC4 (Rivest Cipher 4)
-# ============================================================
 
 class RC4:
-    """Implémentation du chiffrement RC4 (stream cipher)."""
+    """Wrapper pour RC4 de pycryptodome."""
 
     def __init__(self, key):
-        """
-        Initialise le RC4 avec une clé.
-        La clé peut être une string ou des bytes.
-        """
         if isinstance(key, str):
             key = key.encode('utf-8')
-
         self.key = key
-        self.S = list(range(256))
-        self._ksa(key)
-
-    def _ksa(self, key):
-        """Key Scheduling Algorithm (KSA) - Initialisation du S-box."""
-        key_length = len(key)
-        j = 0
-
-        for i in range(256):
-            j = (j + self.S[i] + key[i % key_length]) % 256
-            self.S[i], self.S[j] = self.S[j], self.S[i]
-
-    def _prga(self):
-        """Pseudo-Random Generation Algorithm (PRGA) - Génère un byte de keystream."""
-        if not hasattr(self, '_i'):
-            self._i = 0
-            self._j = 0
-
-        self._i = (self._i + 1) % 256
-        self._j = (self._j + self.S[self._i]) % 256
-        self.S[self._i], self.S[self._j] = self.S[self._j], self.S[self._i]
-
-        return self.S[(self.S[self._i] + self.S[self._j]) % 256]
-
-    def encrypt(self, data):
-        """
-        Chiffre/déchiffre les données (stream cipher = symétrique).
-        Peut prendre string ou bytes en entrée.
-        """
-        if isinstance(data, str):
-            data = data.encode('utf-8')
-
-        # Réinitialiser l'état pour ce chiffrement
-        self._i = 0
-        self._j = 0
-        self.S = list(range(256))
-        self._ksa(self.key)
-
-        result = bytearray()
-        for byte in data:
-            keystream_byte = self._prga()
-            result.append(byte ^ keystream_byte)
-
-        return bytes(result)
-
-    def decrypt(self, data):
-        """
-        Déchiffrement RC4 (identique au chiffrement).
-        """
-        return self.encrypt(data)
-
-
-# ============================================================
-#  Variantes RC4
-# ============================================================
-
-class RC4A:
-    """
-    RC4A (variante avec deux S-boxes pour plus de sécurité).
-    """
-    def __init__(self, key):
-        if isinstance(key, str):
-            key = key.encode('utf-8')
-
-        self.key = key
-        self.S1 = list(range(256))
-        self.S2 = list(range(256))
-        self._ksa(key)
-
-    def _ksa(self, key):
-        key_len = len(key)
-        j1 = j2 = 0
-
-        for i in range(256):
-            j1 = (j1 + self.S1[i] + key[i % key_len]) % 256
-            self.S1[i], self.S1[j1] = self.S1[j1], self.S1[i]
-
-            j2 = (j2 + self.S2[i] + key[i % key_len]) % 256
-            self.S2[i], self.S2[j2] = self.S2[j2], self.S2[i]
-
-    def _prga(self):
-        if not hasattr(self, '_i'):
-            self._i = 0
-            self._j1 = 0
-            self._j2 = 0
-
-        self._i = (self._i + 1) % 256
-        self._j1 = (self._j1 + self.S1[self._i]) % 256
-        self.S1[self._i], self.S1[self._j1] = self.S1[self._j1], self.S1[self._i]
-
-        self._j2 = (self._j2 + self.S2[self._i]) % 256
-        self.S2[self._i], self.S2[self._j2] = self.S2[self._j2], self.S2[self._i]
-
-        # Deux keystream bytes par itération
-        k1 = self.S1[(self.S1[self._i] + self.S1[self._j1]) % 256]
-        k2 = self.S2[(self.S2[self._i] + self.S2[self._j2]) % 256]
-
-        return k1, k2
 
     def encrypt(self, data):
         if isinstance(data, str):
             data = data.encode('utf-8')
-
-        self._i = 0
-        self._j1 = 0
-        self._j2 = 0
-        self.S1 = list(range(256))
-        self.S2 = list(range(256))
-        self._ksa(self.key)
-
-        result = bytearray()
-        i = 0
-        while i < len(data):
-            k1, k2 = self._prga()
-            if i < len(data):
-                result.append(data[i] ^ k1)
-            i += 1
-            if i < len(data):
-                result.append(data[i] ^ k2)
-            i += 1
-
-        return bytes(result)
+        cipher = ARC4.new(self.key)
+        return cipher.encrypt(data)
 
     def decrypt(self, data):
-        return self.encrypt(data)
+        return self.encrypt(data)  # RC4 est symétrique
 
 
-class RC4Drop:
+def weak_iv_attack_demo():
     """
-    RC4 avec phase de drop (saute N premiers bytes du keystream).
-    Résiste mieux aux attaques sur les premiers bytes.
+    Vulnérabilité WEP : IV faibles.
+    Sous certaines conditions, le premier octet du keystream est corrélé à la clé.
     """
-    def __init__(self, key, drop_bytes=768):
-        """
-        drop_bytes: nombre de bytes à sauter (recommandé: 768 ou 1024)
-        """
-        if isinstance(key, str):
-            key = key.encode('utf-8')
+    print("\n" + "=" * 60)
+    print("  VULNÉRABILITÉ WEP - IV FAIBLES")
+    print("=" * 60)
 
-        self.key = key
-        self.drop_bytes = drop_bytes
-        self.rc4 = RC4(key)
+    # Simulation d'une clé WEP (5 ou 13 octets)
+    secret_key = b"SecretKey"
 
-        # Faire tourner le PRGA pour sauter les premiers bytes
-        for _ in range(drop_bytes):
-            self.rc4._prga()
+    print("\nTest avec IV faibles (commençant par 0x00, 0x01, 0x02...):")
+    print("-" * 50)
 
-    def encrypt(self, data):
-        if isinstance(data, str):
-            data = data.encode('utf-8')
+    for iv_prefix in [0x00, 0x01, 0x02, 0x03, 0x04, 0xAA, 0xBB, 0xFF]:
+        # WEP utilise IV + clé
+        iv = bytes([iv_prefix, 0x00, 0x00])
+        full_key = iv + secret_key
 
-        result = bytearray()
-        for byte in data:
-            keystream_byte = self.rc4._prga()
-            result.append(byte ^ keystream_byte)
+        rc4 = RC4(full_key)
+        keystream = rc4.encrypt(b"\x00" * 10)  # Premier octets du keystream
 
-        return bytes(result)
-
-    def decrypt(self, data):
-        return self.encrypt(data)
+        print(f"IV = {iv.hex()} : premier octet keystream = 0x{keystream[0]:02x}")
 
 
-class RC4WithHash:
+def rc4_byte_bias_analysis(num_keys=1000):
     """
-    RC4 avec clé dérivée via SHA-256 (clé plus longue/sécurisée).
+    Analyse du biais statistique de RC4.
+    Le second octet du keystream a une probabilité légèrement plus élevée d'être 0.
     """
-    def __init__(self, password):
-        if isinstance(password, str):
-            password = password.encode('utf-8')
+    print("\n" + "=" * 60)
+    print("  ANALYSE DES BIAIS STATISTIQUES RC4")
+    print(f"  (Test sur {num_keys} clés aléatoires)")
+    print("=" * 60)
 
-        # Dériver une clé de 256 bits avec SHA-256
-        derived_key = hashlib.sha256(password).digest()
-        self.rc4 = RC4(derived_key)
+    second_byte_counts = Counter()
 
-    def encrypt(self, data):
-        return self.rc4.encrypt(data)
+    for _ in range(num_keys):
+        key = os.urandom(16)  # Clé aléatoire 128 bits
+        rc4 = RC4(key)
+        keystream = rc4.encrypt(b"\x00" * 3)  # Générer 3 octets
+        second_byte_counts[keystream[1]] += 1
 
-    def decrypt(self, data):
-        return self.rc4.decrypt(data)
+    print("\nDistribution du 2ème octet du keystream :")
+    print("-" * 40)
 
+    # Afficher les valeurs les plus fréquentes
+    for byte_val, count in second_byte_counts.most_common(10):
+        expected = num_keys / 256
+        bias = (count - expected) / expected * 100
+        print(f"  0x{byte_val:02x} : {count:4d} occurrences (biais: {bias:+.2f}%)")
 
-# ============================================================
-#  Utilitaires
-# ============================================================
+    # Vérifier le biais vers 0
+    zero_count = second_byte_counts[0]
+    expected = num_keys / 256
+    zero_bias = (zero_count - expected) / expected * 100
+    print(f"\n✅ Biais vers 0 : {zero_bias:+.2f}% (attendu: {expected:.1f}, observé: {zero_count})")
 
-def rc4_encrypt_file(filename, key, output_filename=None):
-    """Chiffre un fichier avec RC4."""
-    with open(filename, 'rb') as f:
-        data = f.read()
-
-    rc4 = RC4(key)
-    encrypted = rc4.encrypt(data)
-
-    if output_filename is None:
-        output_filename = filename + '.rc4'
-
-    with open(output_filename, 'wb') as f:
-        f.write(encrypted)
-
-    return output_filename
+    return second_byte_counts
 
 
-def rc4_decrypt_file(filename, key, output_filename=None):
-    """Déchiffre un fichier RC4."""
-    with open(filename, 'rb') as f:
-        data = f.read()
+def plot_rc4_bias(byte_counts, num_keys):
+    """Affiche un graphique des biais RC4."""
+    expected = num_keys / 256
+    biases = [(byte, (count - expected) / expected * 100) for byte, count in byte_counts.items()]
+    biases.sort(key=lambda x: x[1], reverse=True)
 
-    rc4 = RC4(key)
-    decrypted = rc4.decrypt(data)
+    top_10 = biases[:10]
+    bytes_vals = [b[0] for b in top_10]
+    bias_vals = [b[1] for b in top_10]
 
-    if output_filename is None:
-        if filename.endswith('.rc4'):
-            output_filename = filename[:-4]
-        else:
-            output_filename = filename + '.dec'
-
-    with open(output_filename, 'wb') as f:
-        f.write(decrypted)
-
-    return output_filename
+    plt.figure(figsize=(10, 6))
+    plt.bar(bytes_vals, bias_vals, color='skyblue')
+    plt.axhline(y=0, color='red', linestyle='--', linewidth=0.5)
+    plt.xlabel('Octet (hex)')
+    plt.ylabel('Biais (%)')
+    plt.title('Biais RC4 - Top 10 des octets')
+    plt.xticks(bytes_vals, [f'0x{b:02x}' for b in bytes_vals])
+    plt.show()
 
 
-# ============================================================
-#  Démonstration
-# ============================================================
+def menu():
+    print("\n" + "=" * 50)
+    print("      RC4 STREAM CIPHER")
+    print("=" * 50)
+    print("1. Chiffrer / Déchiffrer un message")
+    print("2. Vulnérabilité WEP (IV faibles)")
+    print("3. Biais statistiques RC4")
+    print("4. Quitter")
+    print("-" * 50)
+
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("  RC4 Stream Cipher - Démonstration")
-    print("=" * 60)
+    while True:
+        menu()
 
-    message = input("\n📝 Entrez un message à chiffrer : ")
-    password = input("🔑 Entrez un mot de passe : ")
+        try:
+            choix = int(input("Choisissez une option : "))
 
-    # RC4 Standard
-    print("\n" + "-" * 40)
-    print("  RC4 Standard")
-    print("-" * 40)
-    rc4 = RC4(password)
-    encrypted = rc4.encrypt(message)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = rc4.decrypt(encrypted).decode('utf-8')
-    print(f"   Déchiffré     : {decrypted}")
+            if choix == 4:
+                print("Au revoir !")
+                break
 
-    # RC4A
-    print("\n" + "-" * 40)
-    print("  RC4A (2 S-boxes)")
-    print("-" * 40)
-    rc4a = RC4A(password)
-    encrypted = rc4a.encrypt(message)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = rc4a.decrypt(encrypted).decode('utf-8')
-    print(f"   Déchiffré     : {decrypted}")
+            if choix == 1:
+                mode = input("Chiffrer (c) ou Déchiffrer (d) ? ").lower()
+                password = input("🔑 Entrez le mot de passe : ")
+                rc4 = RC4(password)
 
-    # RC4Drop
-    print("\n" + "-" * 40)
-    print("  RC4Drop (768 bytes dropped)")
-    print("-" * 40)
-    rc4drop = RC4Drop(password, drop_bytes=768)
-    encrypted = rc4drop.encrypt(message)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = rc4drop.decrypt(encrypted).decode('utf-8')
-    print(f"   Déchiffré     : {decrypted}")
+                if mode == 'c':
+                    test = input("Voulez-vous (t)ester ou (u)tiliser votre propre texte ? ").lower()
+                    if test == 't':
+                        message = "Message secret RC4"
+                        print(f"Message de test : {message}")
+                    else:
+                        message = input("📝 Entrez le message à chiffrer : ")
 
-    # RC4WithHash
-    print("\n" + "-" * 40)
-    print("  RC4 with SHA-256 key derivation")
-    print("-" * 40)
-    rc4hash = RC4WithHash(password)
-    encrypted = rc4hash.encrypt(message)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = rc4hash.decrypt(encrypted).decode('utf-8')
-    print(f"   Déchiffré     : {decrypted}")
+                    encrypted = rc4.encrypt(message)
+                    print(f"Message chiffré (hex) : {encrypted.hex()}")
+                    print(f"Message chiffré (len) : {len(encrypted)} bytes")
 
-    print("\n" + "-" * 40)
-    print("  Propriétés RC4")
-    print("-" * 40)
-    print("   ✅ Chiffrement symétrique (même fonction)")
-    print("   ✅ Stream cipher (keystream XOR)")
-    print("   ✅ Très rapide")
-    print("   ⚠️  Vulnérabilités connues (ne pas utiliser pour production)")
+                else:
+                    test = input("Voulez-vous (t)ester ou (u)tiliser votre propre texte ? ").lower()
+                    if test == 't':
+                        message = "Message secret RC4"
+                        encrypted = rc4.encrypt(message)
+                        ciphertext_hex = encrypted.hex()
+                        print(f"Message chiffré de test : {ciphertext_hex}")
+                    else:
+                        ciphertext_hex = input("Entrez le message chiffré (hex) : ")
 
-    print("\n✅ Toutes les variantes RC4 fonctionnent !")
+                    ciphertext = bytes.fromhex(ciphertext_hex)
+                    decrypted = rc4.decrypt(ciphertext)
+                    print(f"Message déchiffré : {decrypted.decode('utf-8')}")
+
+            elif choix == 2:
+                weak_iv_attack_demo()
+
+            elif choix == 3:
+                num_keys = int(input("Nombre de clés à tester (ex: 10000) : ") or "10000")
+                counts = rc4_byte_bias_analysis(num_keys)
+                graph = input("Afficher le graphique ? (o/n) : ").lower()
+                if graph == 'o':
+                    plot_rc4_bias(counts, num_keys)
+
+        except Exception as e:
+            print(f"Erreur : {e}")

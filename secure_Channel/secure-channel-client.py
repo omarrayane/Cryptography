@@ -1,172 +1,149 @@
-"""
-client.py - Client qui envoie des messages chiffrés au serveur
-VERSION AVEC DEBUG LOGGING - Voir le chiffrement en action!
-"""
+# secure_client.py - Client sécurisé
+# ============================================================
 
 import socket
 import threading
+import os
 import sys
 from crypto_utils import CryptoTools, create_secure_packet, parse_secure_packet
 
 
 # Configuration
-SERVER_HOST = 'localhost'  # Changez si serveur sur autre machine
+SERVER_HOST = 'localhost'
 SERVER_PORT = 65432
 
-CLIENT_PRIVATE_KEY = "client_private_key.pem"
-SERVER_PUBLIC_KEY = "server_public_key.pem"
-
-# 🔧 DEBUG MODE - Affiche les données chiffrées
-DEBUG_MODE = True
+# Chemins des clés (dossier keys)
+CLIENT_PRIVATE_KEY = "keys/client_private_key.pem"
+SERVER_PUBLIC_KEY = "keys/server_public_key.pem"
 
 
-def save_message(message, filename="client_messages.txt"):
-    """Enregistre un message dans un fichier"""
+def save_message(message: str, filename: str = "client_messages.txt"):
+    """Enregistre un message dans un fichier."""
     with open(filename, "a", encoding="utf-8") as f:
         f.write(message + "\n")
 
 
 def receive_messages(sock, client_private_key, server_public_key):
-    """Reçoit les messages du serveur en continu"""
+    """Thread de réception des messages."""
     while True:
         try:
-            data = sock.recv(4096)
-            if not data:
-                print("[*] Serveur a fermé la connexion")
+            # Réception de la taille du message
+            size_data = sock.recv(4)
+            if not size_data:
+                print("\n[*] Serveur a fermé la connexion")
                 break
-            
-            # =========== DEBUG: AFFICHER LES DONNÉES CHIFFRÉES ===========
-            if DEBUG_MODE:
-                print("\n" + "=" * 70)
-                print("🔍 DEBUG - DONNÉES CHIFFRÉES REÇUES")
-                print("=" * 70)
-                print(f"[*] Taille totale du paquet: {len(data)} bytes")
-                print(f"[*] Premier 64 bytes (HEX): {data[:64].hex()}")
-                print(f"[*] Premier 64 bytes (RAW): {data[:64]}")
-                print("[*] → Les données NE SONT PAS lisibles (bien chiffré!)")
-                print("=" * 70)
-            # ============================================================
-            
+
+            msg_size = int.from_bytes(size_data, 'big')
+
+            # Réception du message complet
+            data = b''
+            while len(data) < msg_size:
+                chunk = sock.recv(min(4096, msg_size - len(data)))
+                if not chunk:
+                    break
+                data += chunk
+
+            if not data:
+                break
+
+            # Déchiffrer et vérifier
             plaintext, signature_valid = parse_secure_packet(
                 data,
                 client_private_key,
                 server_public_key
             )
-            
-            # =========== DEBUG: AFFICHER APRÈS DÉCHIFFREMENT ===========
-            if DEBUG_MODE:
-                print("\n" + "=" * 70)
-                print("🔓 DEBUG - APRÈS DÉCHIFFREMENT")
-                print("=" * 70)
-                print(f"[✓] Message déchiffré avec succès!")
-                print(f"[✓] Signature: {'VALIDE ✅' if signature_valid else 'INVALIDE ❌'}")
-                print(f"[*] Contenu: {plaintext}")
-                print("=" * 70 + "\n")
-            # ============================================================
-            
-            print(f"[Server]: {plaintext}")
+
+            print(f"\n[Server]: {plaintext}")
             if signature_valid:
                 print("[✓] Signature valide")
             else:
                 print("[✗] SIGNATURE INVALIDE!")
-            
-            save_message(f"REÇU du serveur: {plaintext}", "client_messages.txt")
-            print("Client: ", end="", flush=True)
-        
+
+            save_message(f"REÇU du serveur: {plaintext}")
+            print("\n[Client]: ", end="", flush=True)
+
         except Exception as e:
             print(f"\n[Erreur réception]: {e}")
             break
 
 
 def send_messages(sock, client_private_key, server_public_key):
-    """Envoie les messages au serveur"""
+    """Envoi des messages."""
     while True:
         try:
-            message = input("Client: ")
-            
-            if message.lower() == "exit":
-                print("[*] Déconnexion...")
+            message = input("[Client]: ")
+
+            if message.lower() in ['exit', 'quit']:
+                print("[*] Fermeture de la connexion...")
                 sock.close()
                 break
-            
-            # =========== DEBUG: AVANT CHIFFREMENT ===========
-            if DEBUG_MODE:
-                print("\n" + "=" * 70)
-                print("🔒 DEBUG - AVANT CHIFFREMENT")
-                print("=" * 70)
-                print(f"[*] Message original: '{message}'")
-                print(f"[*] Taille originale: {len(message)} bytes")
-                print("=" * 70)
-            # ==============================================
-            
-            # Créer et envoyer le paquet sécurisé
-            packet = create_secure_packet(message, client_private_key, server_public_key)
-            
-            # =========== DEBUG: APRÈS CHIFFREMENT ===========
-            if DEBUG_MODE:
-                print("\n" + "=" * 70)
-                print("🔐 DEBUG - PAQUET CHIFFRÉ")
-                print("=" * 70)
-                print(f"[*] Taille après chiffrement: {len(packet)} bytes")
-                print(f"[*] Overhead de chiffrement: {len(packet) - len(message)} bytes")
-                print(f"[*] Premier 64 bytes (HEX): {packet[:64].hex()}")
-                print(f"[*] → Les données sont illisibles (bien chiffré!)")
-                print("=" * 70 + "\n")
-            # ==============================================
-            
-            sock.sendall(packet)
-            
-            save_message(f"ENVOYÉ au serveur: {message}", "client_messages.txt")
-            print("[+] Message envoyé")
-        
+
+            if message.strip():
+                # Créer le paquet sécurisé
+                packet = create_secure_packet(message, client_private_key, server_public_key)
+
+                # Envoyer la taille puis le message
+                sock.sendall(len(packet).to_bytes(4, 'big'))
+                sock.sendall(packet)
+
+                save_message(f"ENVOYÉ au serveur: {message}")
+
         except Exception as e:
             print(f"[Erreur envoi]: {e}")
             break
 
 
-def main():
-    """Programme principal"""
-    print("[*] Client se connecte au serveur...")
-    
-    if DEBUG_MODE:
-        print("\n" + "🔧 MODE DEBUG ACTIVÉ 🔧".center(70))
-        print("Les données chiffrées et déchiffrées seront affichées".center(70))
-        print("=" * 70 + "\n")
-    
+def start_client():
+    """Démarre le client sécurisé."""
+    print("=" * 60)
+    print("  CLIENT SÉCURISÉ (RSA + AES-256 GCM)")
+    print("=" * 60)
+
+    # Vérifier l'existence des clés
+    if not os.path.exists(CLIENT_PRIVATE_KEY):
+        print("\n❌ Clé privée du client introuvable!")
+        print("   Exécutez d'abord: python keygen.py")
+        return
+
+    if not os.path.exists(SERVER_PUBLIC_KEY):
+        print("\n❌ Clé publique du serveur introuvable!")
+        print("   Assurez-vous que server_public_key.pem est dans le dossier keys/")
+        print("   (Copiez-la depuis le serveur si nécessaire)")
+        return
+
     try:
         # Charger les clés
-        print("[*] Chargement des clés...")
+        print("\n[*] Chargement des clés...")
         client_private_key = CryptoTools.load_private_key(CLIENT_PRIVATE_KEY)
         server_public_key = CryptoTools.load_public_key(SERVER_PUBLIC_KEY)
-        print("[+] Clés chargées")
-        
-        # Se connecter au serveur
+        print("[+] Clés chargées avec succès")
+
+        # Connexion au serveur
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((SERVER_HOST, SERVER_PORT))
-        print(f"[+] Connecté au serveur sur {SERVER_HOST}:{SERVER_PORT}\n")
-        
-        # Thread de réception
+        print(f"\n[+] Connecté au serveur sur {SERVER_HOST}:{SERVER_PORT}")
+
+        # Démarrer le thread de réception
         recv_thread = threading.Thread(
             target=receive_messages,
             args=(sock, client_private_key, server_public_key),
             daemon=True
         )
         recv_thread.start()
-        
+
         # Envoi des messages (thread principal)
         send_messages(sock, client_private_key, server_public_key)
-    
-    except FileNotFoundError as e:
-        print(f"[!] Fichier manquant: {e}")
-        print("   Générez les clés d'abord !")
-    
+
+        # Fermeture
+        sock.close()
+        print("\n[*] Client arrêté")
+
     except ConnectionRefusedError:
-        print(f"[!] Impossible de se connecter au serveur ({SERVER_HOST}:{SERVER_PORT})")
+        print(f"\n[!] Impossible de se connecter au serveur ({SERVER_HOST}:{SERVER_PORT})")
         print("   Vérifiez que le serveur est en écoute")
-    
     except Exception as e:
-        print(f"[!] Erreur: {e}")
+        print(f"\n[!] Erreur: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    start_client()

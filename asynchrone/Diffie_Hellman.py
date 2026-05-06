@@ -1,96 +1,290 @@
-import random
+# Diffie_Hellman.py - Échange de clés Diffie-Hellman
+# ============================================================
+
+from cryptography.hazmat.primitives.asymmetric import dh, ec
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.backends import default_backend
+from cryptography.exceptions import InvalidSignature
+import os
 import hashlib
 
-# ============================================================
-#  Diffie-Hellman Key Exchange (Échange de clés)
-# ============================================================
-
-def is_primitive_root(g, p):
-    """Vérifie si g est une racine primitive modulo p (simplifiée)."""
-    required = set(range(1, p))
-    actual = set(pow(g, i, p) for i in range(1, p))
-    return required == actual
-
-
-def generate_dh_parameters():
-    """
-    Génère les paramètres publics de Diffie-Hellman :
-      - p : un nombre premier
-      - g : une racine primitive modulo p
-    (Valeurs pédagogiques, petites pour la démonstration)
-    """
-    p = 23  # nombre premier
-    g = 5   # racine primitive modulo 23
-    return p, g
-
-
-def generate_private_key(p):
-    """Génère une clé privée aléatoire dans [2, p-2]."""
-    return random.randint(2, p - 2)
-
-
-def generate_public_key(g, private_key, p):
-    """Calcule la clé publique : A = g^a mod p."""
-    return pow(g, private_key, p)
-
-
-def compute_shared_secret(other_public, private_key, p):
-    """Calcule le secret partagé : s = B^a mod p  (ou A^b mod p)."""
-    return pow(other_public, private_key, p)
-
-
-def derive_aes_key(shared_secret):
-    """
-    Dérive une clé AES 256 bits à partir du secret partagé
-    en utilisant SHA-256.
-    """
-    secret_bytes = str(shared_secret).encode('utf-8')
-    return hashlib.sha256(secret_bytes).digest()  # 32 octets = 256 bits
-
 
 # ============================================================
-#  Démonstration
+#  DIFFIE-HELLMAN STANDARD
 # ============================================================
+
+def generate_dh_parameters_secure():
+    """
+    Génère des paramètres DH sécurisés (groupe de 2048 bits).
+    """
+    # Utiliser les paramètres standards du RFC 3526 (groupe 14)
+    parameters = dh.generate_parameters(generator=2, key_size=2048, backend=default_backend())
+    return parameters
+
+
+def generate_dh_key_pair(parameters):
+    """
+    Génère une paire de clés DH.
+    """
+    private_key = parameters.generate_private_key()
+    public_key = private_key.public_key()
+    return private_key, public_key
+
+
+def compute_dh_shared_secret(private_key, peer_public_key):
+    """
+    Calcule le secret partagé.
+    """
+    shared_secret = private_key.exchange(peer_public_key)
+    return shared_secret
+
+
+def derive_aes_key_from_dh(shared_secret, length=32):
+    """
+    Dérive une clé AES à partir du secret partagé.
+    """
+    return HKDF(
+        algorithm=hashes.SHA256(),
+        length=length,
+        salt=None,
+        info=b'dh-key-derivation',
+        backend=default_backend()
+    ).derive(shared_secret)
+
+
+def simulate_dh_exchange():
+    """
+    Simule un échange DH complet entre Alice et Bob.
+    """
+    print("\n" + "=" * 60)
+    print("  SIMULATION D'ÉCHANGE DIFFIE-HELLMAN")
+    print("=" * 60)
+
+    # Génération des paramètres publics
+    parameters = generate_dh_parameters_secure()
+    print(f"\n📌 Paramètres publics générés (2048 bits)")
+
+    # Génération des clés
+    alice_priv, alice_pub = generate_dh_key_pair(parameters)
+    bob_priv, bob_pub = generate_dh_key_pair(parameters)
+
+    print(f"\n🔑 Clés privées générées")
+    print(f"🌐 Clés publiques échangées")
+
+    # Calcul du secret partagé
+    alice_secret = compute_dh_shared_secret(alice_priv, bob_pub)
+    bob_secret = compute_dh_shared_secret(bob_priv, alice_pub)
+
+    assert alice_secret == bob_secret
+
+    # Dérivation de la clé AES
+    aes_key = derive_aes_key_from_dh(alice_secret)
+
+    print(f"\n✅ Secret partagé identique : {alice_secret.hex()[:32]}...")
+    print(f"🔐 Clé AES-256 dérivée : {aes_key.hex()[:32]}...")
+
+    return alice_secret, aes_key
+
+
+# ============================================================
+#  ATTAQUE MAN-IN-THE-MIDDLE (MITM)
+# ============================================================
+
+class MITMAttacker:
+    """
+    Simule un attaquant Man-in-the-Middle.
+    """
+
+    def __init__(self):
+        self.parameters = generate_dh_parameters_secure()
+        self.private_key_alice_fake = None
+        self.private_key_bob_fake = None
+        self.public_key_alice_fake = None
+        self.public_key_bob_fake = None
+
+    def intercept_and_replace(self, alice_public, bob_public):
+        """
+        Intercepte les clés publiques et les remplace par ses propres clés.
+        """
+        print("\n" + "=" * 60)
+        print("  ATTAQUE MAN-IN-THE-MIDDLE (MITM)")
+        print("=" * 60)
+
+        # L'attaquant génère SES propres clés
+        self.private_key_alice_fake, self.public_key_alice_fake = generate_dh_key_pair(self.parameters)
+        self.private_key_bob_fake, self.public_key_bob_fake = generate_dh_key_pair(self.parameters)
+
+        print("\n📌 Étape 1: Alice veut envoyer sa clé publique à Bob")
+        print(f"   Alice envoie : {alice_public.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo).hex()[:32]}...")
+
+        print("\n⚠️  L'attaquant intercepte et remplace par SA clé publique")
+        print(f"   Attaquant envoie à Bob : {self.public_key_alice_fake.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo).hex()[:32]}...")
+
+        print("\n📌 Étape 2: Bob envoie sa clé publique à Alice")
+        print(f"   Bob envoie : {bob_public.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo).hex()[:32]}...")
+
+        print("\n⚠️  L'attaquant intercepte et remplace par SA clé publique")
+        print(f"   Attaquant envoie à Alice : {self.public_key_bob_fake.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo).hex()[:32]}...")
+
+        return self.public_key_alice_fake, self.public_key_bob_fake
+
+    def establish_sessions(self, alice_public, bob_public):
+        """
+        Établit deux sessions séparées avec Alice et Bob.
+        """
+        print("\n" + "=" * 60)
+        print("  CONSÉQUENCES DE L'ATTAQUE MITM")
+        print("=" * 60)
+
+        # Session entre Alice et l'attaquant
+        secret_alice_attacker = compute_dh_shared_secret(self.private_key_alice_fake, alice_public)
+        # Session entre Bob et l'attaquant
+        secret_bob_attacker = compute_dh_shared_secret(self.private_key_bob_fake, bob_public)
+
+        print(f"\n🔐 Secret partagé entre Alice et l'attaquant : {secret_alice_attacker.hex()[:32]}...")
+        print(f"🔐 Secret partagé entre Bob et l'attaquant   : {secret_bob_attacker.hex()[:32]}...")
+
+        print("\n📝 L'attaquant peut maintenant :")
+        print("   1. Déchiffrer tous les messages d'Alice")
+        print("   2. Lire, modifier, puis rechiffrer pour Bob")
+        print("   3. Faire de même dans l'autre sens")
+
+        print("\n❌ Alice et Bob pensent communiquer directement")
+        print("   Mais tout passe par l'attaquant !")
+
+        return secret_alice_attacker, secret_bob_attacker
+
+
+# ============================================================
+#  ECDSA POUR AUTHENTIFIER L'ÉCHANGE DH
+# ============================================================
+
+def generate_ecdsa_keys():
+    """
+    Génère une paire de clés ECDSA pour l'authentification.
+    """
+    private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+    public_key = private_key.public_key()
+    return private_key, public_key
+
+
+def sign_dh_public_key(private_key_ecdsa, dh_public_key):
+    """
+    Signe la clé publique DH avec ECDSA.
+    """
+    der_bytes = dh_public_key.public_bytes(
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    signature = private_key_ecdsa.sign(der_bytes, ec.ECDSA(hashes.SHA256()))
+    return signature
+
+
+def verify_dh_public_key(public_key_ecdsa, dh_public_key, signature):
+    """
+    Vérifie la signature de la clé publique DH.
+    """
+    der_bytes = dh_public_key.public_bytes(
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    try:
+        public_key_ecdsa.verify(signature, der_bytes, ec.ECDSA(hashes.SHA256()))
+        return True
+    except InvalidSignature:
+        return False
+
+
+def simulate_authenticated_dh():
+    """
+    Simule un échange DH authentifié par ECDSA (bloque MITM).
+    """
+    print("\n" + "=" * 60)
+    print("  ÉCHANGE DH AUTHENTIFIÉ PAR ECDSA")
+    print("=" * 60)
+
+    # Génération des clés ECDSA pour Alice et Bob
+    alice_auth_priv, alice_auth_pub = generate_ecdsa_keys()
+    bob_auth_priv, bob_auth_pub = generate_ecdsa_keys()
+
+    print("\n📌 Les clés publiques ECDSA sont échangées AVANT (hors bande ou via PKI)")
+
+    # Échange DH normal
+    parameters = generate_dh_parameters_secure()
+    alice_dh_priv, alice_dh_pub = generate_dh_key_pair(parameters)
+    bob_dh_priv, bob_dh_pub = generate_dh_key_pair(parameters)
+
+    # Signature des clés DH
+    alice_signature = sign_dh_public_key(alice_auth_priv, alice_dh_pub)
+    bob_signature = sign_dh_public_key(bob_auth_priv, bob_dh_pub)
+
+    print("\n✅ Alice signe sa clé DH avec ECDSA")
+    print("✅ Bob signe sa clé DH avec ECDSA")
+
+    # Vérification
+    alice_verified = verify_dh_public_key(bob_auth_pub, bob_dh_pub, bob_signature)
+    bob_verified = verify_dh_public_key(alice_auth_pub, alice_dh_pub, alice_signature)
+
+    print(f"\n🔍 Alice vérifie la clé de Bob : {'✅ VALIDE' if alice_verified else '❌ INVALIDE'}")
+    print(f"🔍 Bob vérifie la clé d'Alice : {'✅ VALIDE' if bob_verified else '❌ INVALIDE'}")
+
+    if alice_verified and bob_verified:
+        secret = compute_dh_shared_secret(alice_dh_priv, bob_dh_pub)
+        print(f"\n🔐 Secret partagé établi de manière AUTHENTIFIÉE")
+        print(f"   MITM impossible car les clés sont signées !")
+
+    return alice_verified and bob_verified
+
+
+# ============================================================
+#  MENU
+# ============================================================
+
+def menu():
+    print("\n" + "=" * 55)
+    print("  DIFFIE-HELLMAN KEY EXCHANGE")
+    print("=" * 55)
+    print("1. Simuler échange DH normal")
+    print("2. Simuler attaque Man-in-the-Middle (MITM)")
+    print("3. Échange DH authentifié par ECDSA")
+    print("4. Quitter")
+    print("-" * 55)
+
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("  Diffie-Hellman Key Exchange")
-    print("=" * 60)
+    while True:
+        menu()
 
-    # --- Étape 1 : Paramètres publics ---
-    p, g = generate_dh_parameters()
-    print(f"\n📌 Paramètres publics Diffie-Hellman :")
-    print(f"   p (nombre premier)     = {p}")
-    print(f"   g (racine primitive)   = {g}")
+        try:
+            choix = int(input("Choisissez une option : "))
 
-    # --- Étape 2 : Génération des clés privées ---
-    a = generate_private_key(p)   # clé privée d'Alice
-    b = generate_private_key(p)   # clé privée de Bob
-    print(f"\n🔑 Clés privées :")
-    print(f"   Alice (a) = {a}")
-    print(f"   Bob   (b) = {b}")
+            if choix == 4:
+                print("Au revoir !")
+                break
 
-    # --- Étape 3 : Calcul des clés publiques ---
-    A = generate_public_key(g, a, p)  # clé publique d'Alice
-    B = generate_public_key(g, b, p)  # clé publique de Bob
-    print(f"\n🌐 Clés publiques échangées :")
-    print(f"   Alice envoie A = g^a mod p = {g}^{a} mod {p} = {A}")
-    print(f"   Bob   envoie B = g^b mod p = {g}^{b} mod {p} = {B}")
+            if choix == 1:
+                simulate_dh_exchange()
 
-    # --- Étape 4 : Calcul du secret partagé ---
-    secret_alice = compute_shared_secret(B, a, p)  # Alice calcule B^a mod p
-    secret_bob   = compute_shared_secret(A, b, p)  # Bob   calcule A^b mod p
-    print(f"\n🤝 Secret partagé :")
-    print(f"   Alice calcule : B^a mod p = {B}^{a} mod {p} = {secret_alice}")
-    print(f"   Bob   calcule : A^b mod p = {A}^{b} mod {p} = {secret_bob}")
-    assert secret_alice == secret_bob, "Erreur : les secrets ne correspondent pas !"
-    print(f"   ✅ Les deux secrets sont identiques : {secret_alice}")
+            elif choix == 2:
+                print("\n" + "=" * 60)
+                print("  SIMULATION ATTAQUE MITM")
+                print("=" * 60)
 
-    # --- Étape 5 : Dérivation de la clé AES ---
-    aes_key = derive_aes_key(secret_alice)
-    print(f"\n🔐 Clé AES-256 dérivée (SHA-256) :")
-    print(f"   {aes_key.hex()}")
+                parameters = generate_dh_parameters_secure()
+                alice_priv, alice_pub = generate_dh_key_pair(parameters)
+                bob_priv, bob_pub = generate_dh_key_pair(parameters)
 
-    print(f"\n{'=' * 60}")
-    print("  ✅ Échange de clés terminé avec succès !")
-    print(f"{'=' * 60}")
+                print(f"\n👤 Alice - Clé publique : {alice_pub.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo).hex()[:32]}...")
+                print(f"👤 Bob   - Clé publique : {bob_pub.public_bytes(serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo).hex()[:32]}...")
+
+                attacker = MITMAttacker()
+                fake_alice_pub, fake_bob_pub = attacker.intercept_and_replace(alice_pub, bob_pub)
+                attacker.establish_sessions(alice_pub, bob_pub)
+
+            elif choix == 3:
+                simulate_authenticated_dh()
+
+        except Exception as e:
+            print(f"Erreur : {e}")
