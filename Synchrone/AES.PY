@@ -1,367 +1,335 @@
-# AES.py
+# AES.PY - Utilisation de pycryptodome
 # ============================================================
 
-import hashlib
-
-# ============================================================
-#  Tables S-Box et Inverse S-Box
-# ============================================================
-
-SBOX = [
-    0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
-    0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
-    0xb7,0xfd,0x93,0x26,0x36,0x3f,0xf7,0xcc,0x34,0xa5,0xe5,0xf1,0x71,0xd8,0x31,0x15,
-    0x04,0xc7,0x23,0xc3,0x18,0x96,0x05,0x9a,0x07,0x12,0x80,0xe2,0xeb,0x27,0xb2,0x75,
-    0x09,0x83,0x2c,0x1a,0x1b,0x6e,0x5a,0xa0,0x52,0x3b,0xd6,0xb3,0x29,0xe3,0x2f,0x84,
-    0x53,0xd1,0x00,0xed,0x20,0xfc,0xb1,0x5b,0x6a,0xcb,0xbe,0x39,0x4a,0x4c,0x58,0xcf,
-    0xd0,0xef,0xaa,0xfb,0x43,0x4d,0x33,0x85,0x45,0xf9,0x02,0x7f,0x50,0x3c,0x9f,0xa8,
-    0x51,0xa3,0x40,0x8f,0x92,0x9d,0x38,0xf5,0xbc,0xb6,0xda,0x21,0x10,0xff,0xf3,0xd2,
-    0xcd,0x0c,0x13,0xec,0x5f,0x97,0x44,0x17,0xc4,0xa7,0x7e,0x3d,0x64,0x5d,0x19,0x73,
-    0x60,0x81,0x4f,0xdc,0x22,0x2a,0x90,0x88,0x46,0xee,0xb8,0x14,0xde,0x5e,0x0b,0xdb,
-    0xe0,0x32,0x3a,0x0a,0x49,0x06,0x24,0x5c,0xc2,0xd3,0xac,0x62,0x91,0x95,0xe4,0x79,
-    0xe7,0xc8,0x37,0x6d,0x8d,0xd5,0x4e,0xa9,0x6c,0x56,0xf4,0xea,0x65,0x7a,0xae,0x08,
-    0xba,0x78,0x25,0x2e,0x1c,0xa6,0xb4,0xc6,0xe8,0xdd,0x74,0x1f,0x4b,0xbd,0x8b,0x8a,
-    0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,
-    0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,
-    0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16,
-]
-
-INV_SBOX = [
-    0x52,0x09,0x6a,0xd5,0x30,0x36,0xa5,0x38,0xbf,0x40,0xa3,0x9e,0x81,0xf3,0xd7,0xfb,
-    0x7c,0xe3,0x39,0x82,0x9b,0x2f,0xff,0x87,0x34,0x8e,0x43,0x44,0xc4,0xde,0xe9,0xcb,
-    0x54,0x7b,0x94,0x32,0xa6,0xc2,0x23,0x3d,0xee,0x4c,0x95,0x0b,0x42,0xfa,0xc3,0x4e,
-    0x08,0x2e,0xa1,0x66,0x28,0xd9,0x24,0xb2,0x76,0x5b,0xa2,0x49,0x6d,0x8b,0xd1,0x25,
-    0x72,0xf8,0xf6,0x64,0x86,0x68,0x98,0x16,0xd4,0xa4,0x5c,0xcc,0x5d,0x65,0xb6,0x92,
-    0x6c,0x70,0x48,0x50,0xfd,0xed,0xb9,0xda,0x5e,0x15,0x46,0x57,0xa7,0x8d,0x9d,0x84,
-    0x90,0xd8,0xab,0x00,0x8c,0xbc,0xd3,0x0a,0xf7,0xe4,0x58,0x05,0xb8,0xb3,0x45,0x06,
-    0xd0,0x2c,0x1e,0x8f,0xca,0x3f,0x0f,0x02,0xc1,0xaf,0xbd,0x03,0x01,0x13,0x8a,0x6b,
-    0x3a,0x91,0x11,0x41,0x4f,0x67,0xdc,0xea,0x97,0xf2,0xcf,0xce,0xf0,0xb4,0xe6,0x73,
-    0x96,0xac,0x74,0x22,0xe7,0xad,0x35,0x85,0xe2,0xf9,0x37,0xe8,0x1c,0x75,0xdf,0x6e,
-    0x47,0xf1,0x1a,0x71,0x1d,0x29,0xc5,0x89,0x6f,0xb7,0x62,0x0e,0xaa,0x18,0xbe,0x1b,
-    0xfc,0x56,0x3e,0x4b,0xc6,0xd2,0x79,0x20,0x9a,0xdb,0xc0,0xfe,0x78,0xcd,0x5a,0xf4,
-    0x1f,0xdd,0xa8,0x33,0x88,0x07,0xc7,0x31,0xb1,0x12,0x10,0x59,0x27,0x80,0xec,0x5f,
-    0x60,0x51,0x7f,0xa9,0x19,0xb5,0x4a,0x0d,0x2d,0xe5,0x7a,0x9f,0x93,0xc9,0x9c,0xef,
-    0xa0,0xe0,0x3b,0x4d,0xae,0x2a,0xf5,0xb0,0xc8,0xeb,0xbb,0x3c,0x83,0x53,0x99,0x61,
-    0x17,0x2b,0x04,0x7e,0xba,0x77,0xd6,0x26,0xe1,0x69,0x14,0x63,0x55,0x21,0x0c,0x7d,
-]
-
-RCON = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36]
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
+import os
+import time
+from PIL import Image
+import numpy as np
+from collections import Counter
 
 
-# ─────────────────────────────────────────────
-#  Opérations de base
-# ─────────────────────────────────────────────
-
-def sub_bytes(state):
-    return [SBOX[b] for b in state]
-
-def inv_sub_bytes(state):
-    return [INV_SBOX[b] for b in state]
-
-def shift_rows(state):
-    matrix = [state[i::4] for i in range(4)]
-    for i in range(4):
-        matrix[i] = matrix[i][i:] + matrix[i][:i]
-    result = [0] * 16
-    for i in range(4):
-        for j in range(4):
-            result[j*4 + i] = matrix[i][j]
-    return result
-
-def inv_shift_rows(state):
-    matrix = [state[i::4] for i in range(4)]
-    for i in range(4):
-        matrix[i] = matrix[i][-i:] + matrix[i][:-i] if i else matrix[i]
-    result = [0] * 16
-    for i in range(4):
-        for j in range(4):
-            result[j*4 + i] = matrix[i][j]
-    return result
-
-def xtime(a):
-    return ((a << 1) ^ 0x1B) & 0xFF if a & 0x80 else (a << 1) & 0xFF
-
-def gf_mul(a, b):
-    result = 0
-    temp = a
-    for _ in range(8):
-        if b & 1:
-            result ^= temp
-        temp = xtime(temp)
-        b >>= 1
-    return result
-
-def mix_columns(state):
-    result = list(state)
-    for i in range(4):
-        col = state[i*4:(i+1)*4]
-        result[i*4]     = gf_mul(2, col[0]) ^ gf_mul(3, col[1]) ^ col[2] ^ col[3]
-        result[i*4 + 1] = col[0] ^ gf_mul(2, col[1]) ^ gf_mul(3, col[2]) ^ col[3]
-        result[i*4 + 2] = col[0] ^ col[1] ^ gf_mul(2, col[2]) ^ gf_mul(3, col[3])
-        result[i*4 + 3] = gf_mul(3, col[0]) ^ col[1] ^ col[2] ^ gf_mul(2, col[3])
-    return result
-
-def inv_mix_columns(state):
-    result = list(state)
-    for i in range(4):
-        col = state[i*4:(i+1)*4]
-        result[i*4]     = gf_mul(14, col[0]) ^ gf_mul(11, col[1]) ^ gf_mul(13, col[2]) ^ gf_mul(9, col[3])
-        result[i*4 + 1] = gf_mul(9, col[0]) ^ gf_mul(14, col[1]) ^ gf_mul(11, col[2]) ^ gf_mul(13, col[3])
-        result[i*4 + 2] = gf_mul(13, col[0]) ^ gf_mul(9, col[1]) ^ gf_mul(14, col[2]) ^ gf_mul(11, col[3])
-        result[i*4 + 3] = gf_mul(11, col[0]) ^ gf_mul(13, col[1]) ^ gf_mul(9, col[2]) ^ gf_mul(14, col[3])
-    return result
-
-def add_round_key(state, round_key):
-    return [s ^ k for s, k in zip(state, round_key)]
-
-
-# ─────────────────────────────────────────────
-#  Expansion de clé (AES-128, 192, 256)
-# ─────────────────────────────────────────────
-
-def key_expansion(key):
-    """
-    Expansion pour AES-128 (16 bytes), AES-192 (24 bytes), AES-256 (32 bytes)
-    """
-    key_bytes = list(key)
-    n = len(key_bytes)
-
-    # Déterminer les paramètres
-    if n == 16:
-        nk = 4   # mots de 4 octets
-        nr = 10  # rounds
-    elif n == 24:
-        nk = 6
-        nr = 12
-    elif n == 32:
-        nk = 8
-        nr = 14
-    else:
-        raise ValueError(f"Taille de clé invalide: {n} bytes (doit être 16, 24 ou 32)")
-
-    nb = 4  # taille du bloc en mots
-
-    # Initialiser les mots
-    w = []
-    for i in range(nk):
-        w.append(key_bytes[4*i:4*i+4])
-
-    for i in range(nk, nb * (nr + 1)):
-        temp = list(w[i-1])
-        if i % nk == 0:
-            temp = temp[1:] + temp[:1]
-            temp = [SBOX[b] for b in temp]
-            temp[0] ^= RCON[(i // nk) - 1]
-        elif nk == 8 and i % nk == 4:
-            temp = [SBOX[b] for b in temp]
-
-        w.append([a ^ b for a, b in zip(w[i - nk], temp)])
-
-    # Convertir en round keys
-    round_keys = []
-    for r in range(nr + 1):
-        rk = []
-        for j in range(4):
-            rk.extend(w[r*4 + j])
-        round_keys.append(rk)
-
-    return round_keys, nr
-
-
-# ─────────────────────────────────────────────
-#  Chiffrement/Déchiffrement par bloc
-# ─────────────────────────────────────────────
-
-def aes_encrypt_block(plaintext_block, key):
-    round_keys, nr = key_expansion(key)
-    state = list(plaintext_block)
-
-    state = add_round_key(state, round_keys[0])
-
-    for r in range(1, nr):
-        state = sub_bytes(state)
-        state = shift_rows(state)
-        state = mix_columns(state)
-        state = add_round_key(state, round_keys[r])
-
-    state = sub_bytes(state)
-    state = shift_rows(state)
-    state = add_round_key(state, round_keys[nr])
-
-    return bytes(state)
-
-def aes_decrypt_block(ciphertext_block, key):
-    round_keys, nr = key_expansion(key)
-    state = list(ciphertext_block)
-
-    state = add_round_key(state, round_keys[nr])
-
-    for r in range(nr - 1, 0, -1):
-        state = inv_shift_rows(state)
-        state = inv_sub_bytes(state)
-        state = add_round_key(state, round_keys[r])
-        state = inv_mix_columns(state)
-
-    state = inv_shift_rows(state)
-    state = inv_sub_bytes(state)
-    state = add_round_key(state, round_keys[0])
-
-    return bytes(state)
-
-
-# ─────────────────────────────────────────────
-#  Padding et modes
-# ─────────────────────────────────────────────
-
-def pad(data):
-    padding_len = 16 - (len(data) % 16)
-    return data + bytes([padding_len] * padding_len)
-
-def unpad(data):
-    padding_len = data[-1]
-    return data[:-padding_len]
-
-def aes_encrypt_ecb(plaintext, key):
-    if isinstance(plaintext, str):
-        plaintext = plaintext.encode('utf-8')
+def aes_encrypt_ecb(data, key):
+    """AES mode ECB."""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
     if isinstance(key, str):
-        key = hashlib.sha256(key.encode()).digest()[:len(key) if len(key.encode()) in [16,24,32] else 32]
+        key = key.encode('utf-8')[:32].ljust(32, b'\x00')
 
-    data = pad(plaintext)
-    ciphertext = b''
-    for i in range(0, len(data), 16):
-        ciphertext += aes_encrypt_block(data[i:i+16], key)
-    return ciphertext
+    cipher = AES.new(key, AES.MODE_ECB)
+    padded = pad(data, AES.block_size)
+    return cipher.encrypt(padded)
+
 
 def aes_decrypt_ecb(ciphertext, key):
+    """AES mode ECB."""
     if isinstance(key, str):
-        key = hashlib.sha256(key.encode()).digest()[:len(key) if len(key.encode()) in [16,24,32] else 32]
+        key = key.encode('utf-8')[:32].ljust(32, b'\x00')
 
-    plaintext = b''
-    for i in range(0, len(ciphertext), 16):
-        plaintext += aes_decrypt_block(ciphertext[i:i+16], key)
-    return unpad(plaintext).decode('utf-8')
-
-
-# ─────────────────────────────────────────────
-#  Mode CBC
-# ─────────────────────────────────────────────
-
-def aes_encrypt_cbc(plaintext, key, iv):
-    if isinstance(plaintext, str):
-        plaintext = plaintext.encode('utf-8')
-    if isinstance(iv, str):
-        iv = iv.encode('utf-8')[:16]
-
-    data = pad(plaintext)
-    ciphertext = b''
-    previous = iv
-
-    for i in range(0, len(data), 16):
-        block = data[i:i+16]
-        xored = bytes([b ^ p for b, p in zip(block, previous)])
-        encrypted = aes_encrypt_block(xored, key)
-        ciphertext += encrypted
-        previous = encrypted
-
-    return ciphertext
-
-def aes_decrypt_cbc(ciphertext, key, iv):
-    plaintext = b''
-    previous = iv
-
-    for i in range(0, len(ciphertext), 16):
-        block = ciphertext[i:i+16]
-        decrypted = aes_decrypt_block(block, key)
-        xored = bytes([d ^ p for d, p in zip(decrypted, previous)])
-        plaintext += xored
-        previous = block
-
-    return unpad(plaintext).decode('utf-8')
+    cipher = AES.new(key, AES.MODE_ECB)
+    decrypted = cipher.decrypt(ciphertext)
+    return unpad(decrypted, AES.block_size).decode('utf-8')
 
 
-# ─────────────────────────────────────────────
-#  Mode CTR
-# ─────────────────────────────────────────────
+def aes_encrypt_cbc(data, key, iv=None):
+    """AES mode CBC."""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:32].ljust(32, b'\x00')
+    if iv is None:
+        iv = get_random_bytes(AES.block_size)
 
-def aes_encrypt_ctr(plaintext, key, nonce):
-    if isinstance(plaintext, str):
-        plaintext = plaintext.encode('utf-8')
-    if isinstance(nonce, str):
-        nonce = nonce.encode('utf-8')[:8]
-
-    ciphertext = b''
-    counter = 0
-
-    for i in range(0, len(plaintext), 16):
-        # Construire le compteur (nonce + counter)
-        counter_bytes = nonce + counter.to_bytes(8, 'big')
-        if len(counter_bytes) < 16:
-            counter_bytes = counter_bytes.ljust(16, b'\x00')
-
-        keystream = aes_encrypt_block(counter_bytes[:16], key)
-        block = plaintext[i:i+16]
-        xored = bytes([k ^ p for k, p in zip(keystream, block)])
-        ciphertext += xored
-        counter += 1
-
-    return ciphertext
-
-def aes_decrypt_ctr(ciphertext, key, nonce):
-    return aes_encrypt_ctr(ciphertext, key, nonce)
+    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+    padded = pad(data, AES.block_size)
+    ciphertext = cipher.encrypt(padded)
+    return iv + ciphertext
 
 
-# ─────────────────────────────────────────────
-#  Démonstration
-# ─────────────────────────────────────────────
+def aes_decrypt_cbc(ciphertext, key):
+    """AES mode CBC."""
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:32].ljust(32, b'\x00')
+
+    iv = ciphertext[:AES.block_size]
+    actual_ciphertext = ciphertext[AES.block_size:]
+    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+    decrypted = cipher.decrypt(actual_ciphertext)
+    return unpad(decrypted, AES.block_size).decode('utf-8')
+
+
+def aes_encrypt_ctr(data, key, nonce=None):
+    """AES mode CTR."""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:32].ljust(32, b'\x00')
+    if nonce is None:
+        nonce = get_random_bytes(8)
+
+    cipher = AES.new(key, AES.MODE_CTR, nonce=nonce)
+    ciphertext = cipher.encrypt(data)
+    return nonce + ciphertext
+
+
+def aes_decrypt_ctr(ciphertext, key):
+    """AES mode CTR."""
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:32].ljust(32, b'\x00')
+
+    nonce = ciphertext[:8]
+    actual_ciphertext = ciphertext[8:]
+    cipher = AES.new(key, AES.MODE_CTR, nonce=nonce)
+    return cipher.decrypt(actual_ciphertext).decode('utf-8')
+
+
+def avalanche_effect_cbc():
+    """Modifie 1 bit du IV et observe la propagation."""
+    print("\n" + "=" * 60)
+    print("  EFFET AVALANCHE EN MODE CBC")
+    print("  (Modification d'1 bit du IV)")
+    print("=" * 60)
+
+    key = get_random_bytes(32)  # AES-256
+    plaintext = b"Message super important a chiffrer avec AES-CBC"
+
+    # Chiffrer avec IV original
+    iv1 = get_random_bytes(16)
+    cipher1 = AES.new(key, AES.MODE_CBC, iv=iv1)
+    padded = pad(plaintext, AES.block_size)
+    encrypted1 = cipher1.encrypt(padded)
+
+    # Chiffrer avec IV modifié (1 bit de différence)
+    iv2 = bytearray(iv1)
+    iv2[0] ^= 0x01  # Modifier 1 bit
+    cipher2 = AES.new(key, AES.MODE_CBC, iv=bytes(iv2))
+    encrypted2 = cipher2.encrypt(padded)
+
+    # Comparer bloc par bloc
+    print(f"\nPlaintext : {plaintext.decode()}")
+    print(f"\nTaux de bits différents par bloc :")
+
+    for block_idx in range(len(encrypted1) // 16):
+        block1 = encrypted1[block_idx*16:(block_idx+1)*16]
+        block2 = encrypted2[block_idx*16:(block_idx+1)*16]
+
+        different_bits = sum(bin(b1 ^ b2).count('1') for b1, b2 in zip(block1, block2))
+        total_bits = 16 * 8
+        ratio = different_bits / total_bits * 100
+
+        print(f"  Bloc {block_idx + 1}: {ratio:.1f}% de bits différents")
+
+    print("\n✅ Notez que la modification d'1 bit du IV affecte TOUS les blocs!")
+
+
+def nonce_reuse_ctr_attack():
+    """
+    Vulnérabilité nonce-reuse en mode CTR.
+    Si le même nonce est utilisé pour deux messages, C1 XOR C2 = M1 XOR M2.
+    """
+    print("\n" + "=" * 60)
+    print("  VULNÉRABILITÉ NONCE-REUSE (MODE CTR)")
+    print("=" * 60)
+
+    key = get_random_bytes(32)
+    nonce = get_random_bytes(8)
+
+    message1 = "Bonjour ceci est un message secret"
+    message2 = "Ne pas divulguer cette information"
+
+    print(f"Message 1 : {message1}")
+    print(f"Message 2 : {message2}")
+
+    # Chiffrer avec le MÊME nonce (vulnérabilité)
+    cipher1 = AES.new(key, AES.MODE_CTR, nonce=nonce)
+    cipher2 = AES.new(key, AES.MODE_CTR, nonce=nonce)
+
+    encrypted1 = cipher1.encrypt(message1.encode())
+    encrypted2 = cipher2.encrypt(message2.encode())
+
+    # Attaque : C1 XOR C2 = M1 XOR M2
+    xor_result = bytes(e1 ^ e2 for e1, e2 in zip(encrypted1, encrypted2))
+
+    print(f"\nC1 XOR C2 = {xor_result.hex()[:50]}...")
+    print("\nUn attaquant peut maintenant tenter de deviner les messages")
+    print("en utilisant cette information (crib dragging).")
+
+    # Petit crib dragging
+    print("\n[Exemple de crib dragging]")
+    print("Si on suppose que 'secret' apparaît dans message1:")
+
+    crib = "secret"
+    crib_bytes = crib.encode()
+
+    for pos in range(len(xor_result) - len(crib_bytes)):
+        recovered = bytes(xor_result[pos + i] ^ crib_bytes[i] for i in range(len(crib_bytes)))
+        try:
+            recovered_str = recovered.decode('utf-8')
+            if all(32 <= ord(c) < 127 for c in recovered_str):
+                print(f"  Position {pos}: '{recovered_str}'")
+        except:
+            pass
+
+
+def benchmark_aes_variants(size_mb=10):
+    """Compare AES-128, AES-192, AES-256."""
+    print("\n" + "=" * 60)
+    print(f"  BENCHMARK AES (sur {size_mb} Mo)")
+    print("=" * 60)
+
+    data = os.urandom(size_mb * 1024 * 1024)
+
+    results = {}
+    for bits, key_size in [(128, 16), (192, 24), (256, 32)]:
+        key = get_random_bytes(key_size)
+
+        start = time.time()
+        cipher = AES.new(key, AES.MODE_ECB)
+        encrypted = cipher.encrypt(pad(data, AES.block_size))
+        enc_time = time.time() - start
+
+        start = time.time()
+        cipher = AES.new(key, AES.MODE_ECB)
+        decrypted = cipher.decrypt(encrypted)
+        dec_time = time.time() - start
+
+        results[bits] = {
+            'encrypt': enc_time,
+            'decrypt': dec_time,
+            'throughput': size_mb / enc_time
+        }
+
+    print(f"\n{'AES':<10} {'Chiffrement (s)':<18} {'Déchiffrement (s)':<18} {'Débit (Mo/s)':<15}")
+    print("-" * 65)
+    for bits, metrics in results.items():
+        print(f"AES-{bits:<3} {metrics['encrypt']:<18.4f} {metrics['decrypt']:<18.4f} {metrics['throughput']:<15.2f}")
+
+    print("\n✅ AES-128 est le plus rapide, AES-256 offre plus de sécurité")
+
+
+def compare_ecb_cbc_ctr_image():
+    """Chiffre une image avec différents modes."""
+    print("\n" + "=" * 60)
+    print("  COMPARAISON DES MODES SUR IMAGE")
+    print("=" * 60)
+
+    # Créer une image simple
+    img = Image.new('RGB', (128, 128))
+    pixels = img.load()
+
+    # Motif damier
+    for i in range(128):
+        for j in range(128):
+            if (i // 8) % 2 == (j // 8) % 2:
+                pixels[i, j] = (255, 255, 255)
+            else:
+                pixels[i, j] = (0, 0, 0)
+
+    img.save("original_aes.png")
+    img_bytes = np.array(img).tobytes()
+    key = get_random_bytes(32)
+    iv = get_random_bytes(16)
+    nonce = get_random_bytes(8)
+
+    # ECB
+    cipher_ecb = AES.new(key, AES.MODE_ECB)
+    padded = pad(img_bytes, AES.block_size)
+    encrypted_ecb = cipher_ecb.encrypt(padded)
+    enc_ecb_img = Image.frombytes('RGB', (128, 128), encrypted_ecb[:128*128*3])
+    enc_ecb_img.save("aes_ecb_image.png")
+    print("✅ AES-ECB: aec_ecb_image.png (motifs VISIBLES)")
+
+    # CBC
+    cipher_cbc = AES.new(key, AES.MODE_CBC, iv=iv)
+    encrypted_cbc = cipher_cbc.encrypt(padded)
+    enc_cbc_img = Image.frombytes('RGB', (128, 128), encrypted_cbc[:128*128*3])
+    enc_cbc_img.save("aes_cbc_image.png")
+    print("✅ AES-CBC: aec_cbc_image.png (aucun motif visible)")
+
+    # CTR
+    cipher_ctr = AES.new(key, AES.MODE_CTR, nonce=nonce)
+    encrypted_ctr = cipher_ctr.encrypt(img_bytes)
+    enc_ctr_img = Image.frombytes('RGB', (128, 128), encrypted_ctr[:128*128*3])
+    enc_ctr_img.save("aes_ctr_image.png")
+    print("✅ AES-CTR: aec_ctr_image.png (aucun motif visible)")
+
+    print("\n📁 Ouvrez les images :")
+    print("   - ECB: motifs encore visibles (faiblesse)")
+    print("   - CBC/CTR: aspect aléatoire (sécurisé)")
+
+
+def menu():
+    print("\n" + "=" * 50)
+    print("      AES (128/192/256)")
+    print("=" * 50)
+    print("1. Chiffrer/Déchiffrer (CBC)")
+    print("2. Comparer ECB/CBC/CTR sur image")
+    print("3. Effet avalanche CBC")
+    print("4. Vulnérabilité nonce-reuse CTR")
+    print("5. Benchmark AES-128 vs 192 vs 256")
+    print("6. Quitter")
+    print("-" * 50)
+
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("  AES-128, AES-192, AES-256")
-    print("=" * 60)
+    while True:
+        menu()
 
-    message = input("\n📝 Entrez un message à chiffrer : ")
-    password = input("🔑 Entrez un mot de passe : ")
+        try:
+            choix = int(input("Choisissez une option : "))
 
-    # AES-128
-    print("\n" + "-" * 40)
-    print("  AES-128 (ECB mode)")
-    print("-" * 40)
-    key128 = hashlib.sha256(password.encode()).digest()[:16]
-    encrypted = aes_encrypt_ecb(message, key128)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = aes_decrypt_ecb(encrypted, key128)
-    print(f"   Déchiffré     : {decrypted}")
+            if choix == 6:
+                print("Au revoir !")
+                break
 
-    # AES-192
-    print("\n" + "-" * 40)
-    print("  AES-192 (ECB mode)")
-    print("-" * 40)
-    key192 = hashlib.sha256(password.encode()).digest()[:24]
-    encrypted = aes_encrypt_ecb(message, key192)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = aes_decrypt_ecb(encrypted, key192)
-    print(f"   Déchiffré     : {decrypted}")
+            if choix == 1:
+                mode = input("Chiffrer (c) ou Déchiffrer (d) ? ").lower()
+                bits = input("AES-128, 192 ou 256 bits ? ") or "256"
+                key_size = int(bits) // 8
 
-    # AES-256
-    print("\n" + "-" * 40)
-    print("  AES-256 (CBC mode)")
-    print("-" * 40)
-    key256 = hashlib.sha256(password.encode()).digest()
-    iv = b"0123456789abcdef"
-    encrypted = aes_encrypt_cbc(message, key256, iv)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = aes_decrypt_cbc(encrypted, key256, iv)
-    print(f"   Déchiffré     : {decrypted}")
+                if mode == 'c':
+                    test = input("Voulez-vous (t)ester ou (u)tiliser votre propre texte ? ").lower()
+                    if test == 't':
+                        message = "Message secret avec AES"
+                        print(f"Message de test : {message}")
+                    else:
+                        message = input("📝 Entrez le message à chiffrer : ")
 
-    # AES-256 (CTR mode)
-    print("\n" + "-" * 40)
-    print("  AES-256 (CTR mode)")
-    print("-" * 40)
-    nonce = b"ABCD1234"
-    encrypted = aes_encrypt_ctr(message, key256, nonce)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = aes_decrypt_ctr(encrypted, key256, nonce).decode('utf-8')
-    print(f"   Déchiffré     : {decrypted}")
+                    key = get_random_bytes(key_size)
+                    ciphertext = aes_encrypt_cbc(message, key)
+                    print(f"IV + Chiffré (hex) : {ciphertext.hex()}")
+                    print(f"Clé (hex) : {key.hex()}")
 
-    print("\n✅ Tous les chiffrements AES fonctionnent !")
+                else:
+                    key_hex = input("Entrez la clé (hex) : ")
+                    key = bytes.fromhex(key_hex)
+                    test = input("Voulez-vous (t)ester ou (u)tiliser votre propre texte ? ").lower()
+
+                    if test == 't':
+                        message = "Message secret avec AES"
+                        ciphertext = aes_encrypt_cbc(message, key)
+                        print(f"IV + Chiffré de test : {ciphertext.hex()}")
+                    else:
+                        ciphertext_hex = input("Entrez l'IV + chiffré (hex) : ")
+                        ciphertext = bytes.fromhex(ciphertext_hex)
+
+                    decrypted = aes_decrypt_cbc(ciphertext, key)
+                    print(f"Message déchiffré : {decrypted}")
+
+            elif choix == 2:
+                compare_ecb_cbc_ctr_image()
+
+            elif choix == 3:
+                avalanche_effect_cbc()
+
+            elif choix == 4:
+                nonce_reuse_ctr_attack()
+
+            elif choix == 5:
+                size = float(input("Taille en Mo (ex: 10) : ") or "10")
+                benchmark_aes_variants(size)
+
+        except Exception as e:
+            print(f"Erreur : {e}")

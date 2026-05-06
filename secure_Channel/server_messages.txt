@@ -1,1 +1,13 @@
 REÇU du client: hello la team juuuuuul
+REÇU du client: hello
+REÇU du client: jjj
+REÇU du client: jfaosjdi
+REÇU du client: djkals
+REÇU du client: hello
+REÇU du client: hi
+REÇU du client: yaaaw
+ENVOYÉ au client: wach
+REÇU du client: connection
+REÇU du client: pwd
+ENVOYÉ au client: hello
+ENVOYÉ au client: yaw yaw

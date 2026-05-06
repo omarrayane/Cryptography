@@ -1,364 +1,263 @@
-# DES.py
+# DES.py - Utilisation de pycryptodome
 # ============================================================
 
-import hashlib
-
-# ============================================================
-#  Tables DES
-# ============================================================
-
-# Initial Permutation (IP)
-IP = [
-    58, 50, 42, 34, 26, 18, 10, 2,
-    60, 52, 44, 36, 28, 20, 12, 4,
-    62, 54, 46, 38, 30, 22, 14, 6,
-    64, 56, 48, 40, 32, 24, 16, 8,
-    57, 49, 41, 33, 25, 17, 9, 1,
-    59, 51, 43, 35, 27, 19, 11, 3,
-    61, 53, 45, 37, 29, 21, 13, 5,
-    63, 55, 47, 39, 31, 23, 15, 7
-]
-
-# Final Permutation (FP)
-FP = [
-    40, 8, 48, 16, 56, 24, 64, 32,
-    39, 7, 47, 15, 55, 23, 63, 31,
-    38, 6, 46, 14, 54, 22, 62, 30,
-    37, 5, 45, 13, 53, 21, 61, 29,
-    36, 4, 44, 12, 52, 20, 60, 28,
-    35, 3, 43, 11, 51, 19, 59, 27,
-    34, 2, 42, 10, 50, 18, 58, 26,
-    33, 1, 41, 9, 49, 17, 57, 25
-]
-
-# Expansion Permutation (32 -> 48 bits)
-E = [
-    32, 1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 9,
-    8, 9, 10, 11, 12, 13, 12, 13, 14, 15, 16, 17,
-    16, 17, 18, 19, 20, 21, 20, 21, 22, 23, 24, 25,
-    24, 25, 26, 27, 28, 29, 28, 29, 30, 31, 32, 1
-]
-
-# Permutation P (32-bit)
-P = [
-    16, 7, 20, 21, 29, 12, 28, 17,
-    1, 15, 23, 26, 5, 18, 31, 10,
-    2, 8, 24, 14, 32, 27, 3, 9,
-    19, 13, 30, 6, 22, 11, 4, 25
-]
-
-# PC-1 (64 -> 56 bits)
-PC1 = [
-    57, 49, 41, 33, 25, 17, 9,
-    1, 58, 50, 42, 34, 26, 18,
-    10, 2, 59, 51, 43, 35, 27,
-    19, 11, 3, 60, 52, 44, 36,
-    63, 55, 47, 39, 31, 23, 15,
-    7, 62, 54, 46, 38, 30, 22,
-    21, 13, 5, 28, 20, 12, 4
-]
-
-# PC-2 (56 -> 48 bits)
-PC2 = [
-    14, 17, 11, 24, 1, 5, 3, 28,
-    15, 6, 21, 10, 23, 19, 12, 4,
-    26, 8, 16, 7, 27, 20, 13, 2,
-    41, 52, 31, 37, 47, 55, 30, 40,
-    51, 45, 33, 48, 44, 49, 39, 56,
-    34, 53, 46, 42, 50, 36, 29, 32
-]
-
-# Shift amounts per round
-SHIFTS = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1]
-
-# S-boxes
-S_BOXES = [
-    # S1
-    [[14,4,13,1,2,15,11,8,3,10,6,12,5,9,0,7],
-     [0,15,7,4,14,2,13,1,10,6,12,11,9,5,3,8],
-     [4,1,14,8,13,6,2,11,15,12,9,7,3,10,5,0],
-     [15,12,8,2,9,4,1,7,5,11,3,14,10,0,6,13]],
-    # S2
-    [[15,1,8,14,6,11,3,4,9,7,2,13,12,0,5,10],
-     [3,13,4,7,15,2,8,14,12,0,1,10,6,9,11,5],
-     [0,14,7,11,10,13,4,1,5,8,12,6,9,3,2,15],
-     [13,8,10,1,3,15,4,2,11,6,7,12,0,5,14,9]],
-    # S3
-    [[10,0,9,14,6,3,15,5,1,13,12,7,11,4,2,8],
-     [13,7,0,9,3,4,6,10,2,8,5,14,12,11,15,1],
-     [13,6,4,9,8,15,3,0,11,1,2,12,5,10,14,7],
-     [1,10,13,0,6,9,8,7,4,15,14,3,11,5,2,12]],
-    # S4
-    [[7,13,14,3,0,6,9,10,1,2,8,5,11,12,4,15],
-     [13,8,11,5,6,15,0,3,4,7,2,12,1,10,14,9],
-     [10,6,9,0,12,11,7,13,15,1,3,14,5,2,8,4],
-     [3,15,0,6,10,1,13,8,9,4,5,11,12,7,2,14]],
-    # S5
-    [[2,12,4,1,7,10,11,6,8,5,3,15,13,0,14,9],
-     [14,11,2,12,4,7,13,1,5,0,15,10,3,9,8,6],
-     [4,2,1,11,10,13,7,8,15,9,12,5,6,3,0,14],
-     [11,8,12,7,1,14,2,13,6,15,0,9,10,4,5,3]],
-    # S6
-    [[12,1,10,15,9,2,6,8,0,13,3,4,14,7,5,11],
-     [10,15,4,2,7,12,9,5,6,1,13,14,0,11,3,8],
-     [9,14,15,5,2,8,12,3,7,0,4,10,1,13,11,6],
-     [4,3,2,12,9,5,15,10,11,14,1,7,6,0,8,13]],
-    # S7
-    [[4,11,2,14,15,0,8,13,3,12,9,7,5,10,6,1],
-     [13,0,11,7,4,9,1,10,14,3,5,12,2,15,8,6],
-     [1,4,11,13,12,3,7,14,10,15,6,8,0,5,9,2],
-     [6,11,13,8,1,4,10,7,9,5,0,15,14,2,3,12]],
-    # S8
-    [[13,2,8,4,6,15,11,1,10,9,3,14,5,0,12,7],
-     [1,15,13,8,10,3,7,4,12,5,6,11,0,14,9,2],
-     [7,11,4,1,9,12,14,2,0,6,10,13,15,3,5,8],
-     [2,1,14,7,4,10,8,13,15,12,9,0,3,5,6,11]]
-]
+from Crypto.Cipher import DES, DES3
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
+import os
+import time
+from PIL import Image
+import numpy as np
 
 
-# ─────────────────────────────────────────────
-#  Utilitaires
-# ─────────────────────────────────────────────
-
-def permute(block, table):
-    return [block[i-1] for i in table]
-
-def bytes_to_bits(data):
-    bits = []
-    for byte in data:
-        for i in range(7, -1, -1):
-            bits.append((byte >> i) & 1)
-    return bits
-
-def bits_to_bytes(bits):
-    bytes_list = []
-    for i in range(0, len(bits), 8):
-        byte = 0
-        for j in range(8):
-            byte = (byte << 1) | bits[i+j]
-        bytes_list.append(byte)
-    return bytes(bytes_list)
-
-def xor_bits(a, b):
-    return [x ^ y for x, y in zip(a, b)]
-
-def left_shift(bits, n):
-    return bits[n:] + bits[:n]
-
-def pad_64(data):
-    padding_len = 8 - (len(data) % 8)
-    return data + bytes([padding_len] * padding_len)
-
-def unpad_64(data):
-    padding_len = data[-1]
-    return data[:-padding_len]
-
-def string_to_64bit_key(password):
-    """Convertit un mot de passe en clé 64 bits."""
-    if isinstance(password, str):
-        password = password.encode('utf-8')
-    return hashlib.sha256(password).digest()[:8]
-
-
-# ─────────────────────────────────────────────
-#  Fonction de Feistel
-# ─────────────────────────────────────────────
-
-def feistel(right, subkey):
-    expanded = permute(right, E)
-    xored = xor_bits(expanded, subkey)
-
-    sbox_output = []
-    for i in range(8):
-        block = xored[i*6:(i+1)*6]
-        row = (block[0] << 1) | block[5]
-        col = (block[1] << 3) | (block[2] << 2) | (block[3] << 1) | block[4]
-        sbox_output.extend([int(b) for b in format(S_BOXES[i][row][col], '04b')])
-
-    return permute(sbox_output, P)
-
-
-# ─────────────────────────────────────────────
-#  Sous-clés DES
-# ─────────────────────────────────────────────
-
-def generate_subkeys(key_64bits):
-    """Génère 16 sous-clés de 48 bits."""
-    key_56 = permute(key_64bits, PC1)
-    C = key_56[:28]
-    D = key_56[28:]
-
-    subkeys = []
-    for i in range(16):
-        C = left_shift(C, SHIFTS[i])
-        D = left_shift(D, SHIFTS[i])
-        subkeys.append(permute(C + D, PC2))
-
-    return subkeys
-
-
-# ─────────────────────────────────────────────
-#  Bloc DES
-# ─────────────────────────────────────────────
-
-def des_encrypt_block(block_64bits, subkeys):
-    state = permute(block_64bits, IP)
-    L, R = state[:32], state[32:]
-
-    for i in range(16):
-        new_L = R
-        new_R = xor_bits(L, feistel(R, subkeys[i]))
-        L, R = new_L, new_R
-
-    return permute(R + L, FP)
-
-def des_decrypt_block(block_64bits, subkeys):
-    return des_encrypt_block(block_64bits, list(reversed(subkeys)))
-
-
-# ─────────────────────────────────────────────
-#  DES simple (ECB)
-# ─────────────────────────────────────────────
-
-def des_encrypt(plaintext, key):
-    if isinstance(plaintext, str):
-        plaintext = plaintext.encode('utf-8')
-
+def des_ecb_encrypt(data, key):
+    """DES mode ECB."""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
     if isinstance(key, str):
-        key = string_to_64bit_key(key)
+        key = key.encode('utf-8')[:8].ljust(8, b'\x00')
 
-    key_bits = bytes_to_bits(key)
-    subkeys = generate_subkeys(key_bits)
+    cipher = DES.new(key, DES.MODE_ECB)
+    padded = pad(data, DES.block_size)
+    return cipher.encrypt(padded)
 
-    plaintext = pad_64(plaintext)
-    ciphertext = b''
 
-    for i in range(0, len(plaintext), 8):
-        block = bytes_to_bits(plaintext[i:i+8])
-        encrypted = des_encrypt_block(block, subkeys)
-        ciphertext += bits_to_bytes(encrypted)
-
-    return ciphertext
-
-def des_decrypt(ciphertext, key):
+def des_ecb_decrypt(ciphertext, key):
+    """DES mode ECB."""
     if isinstance(key, str):
-        key = string_to_64bit_key(key)
+        key = key.encode('utf-8')[:8].ljust(8, b'\x00')
 
-    key_bits = bytes_to_bits(key)
-    subkeys = generate_subkeys(key_bits)
-
-    plaintext = b''
-    for i in range(0, len(ciphertext), 8):
-        block = bytes_to_bits(ciphertext[i:i+8])
-        decrypted = des_decrypt_block(block, subkeys)
-        plaintext += bits_to_bytes(decrypted)
-
-    return unpad_64(plaintext).decode('utf-8')
+    cipher = DES.new(key, DES.MODE_ECB)
+    decrypted = cipher.decrypt(ciphertext)
+    return unpad(decrypted, DES.block_size).decode('utf-8')
 
 
-# ─────────────────────────────────────────────
-#  2DES (Double DES)
-# ─────────────────────────────────────────────
+def des_cbc_encrypt(data, key, iv=None):
+    """DES mode CBC avec IV aléatoire."""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:8].ljust(8, b'\x00')
+    if iv is None:
+        iv = get_random_bytes(DES.block_size)
 
-def _2des_encrypt(plaintext, key1, key2):
-    """2DES: E_k1(E_k2(plaintext))"""
-    intermediate = des_encrypt(plaintext, key1)
-    return des_encrypt(intermediate, key2)
-
-def _2des_decrypt(ciphertext, key1, key2):
-    intermediate = des_decrypt(ciphertext, key2)
-    return des_decrypt(intermediate, key1)
+    cipher = DES.new(key, DES.MODE_CBC, iv=iv)
+    padded = pad(data, DES.block_size)
+    ciphertext = cipher.encrypt(padded)
+    return iv + ciphertext
 
 
-# ─────────────────────────────────────────────
-#  3DES (Triple DES) - Standard
-# ─────────────────────────────────────────────
+def des_cbc_decrypt(ciphertext, key):
+    """DES mode CBC."""
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:8].ljust(8, b'\x00')
 
-def _3des_encrypt(plaintext, key1, key2, key3=None):
+    iv = ciphertext[:DES.block_size]
+    actual_ciphertext = ciphertext[DES.block_size:]
+    cipher = DES.new(key, DES.MODE_CBC, iv=iv)
+    decrypted = cipher.decrypt(actual_ciphertext)
+    return unpad(decrypted, DES.block_size).decode('utf-8')
+
+
+def triple_des_cbc_encrypt(data, key):
+    """Triple DES mode CBC."""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:24].ljust(24, b'\x00')
+
+    iv = get_random_bytes(DES3.block_size)
+    cipher = DES3.new(key, DES3.MODE_CBC, iv=iv)
+    padded = pad(data, DES3.block_size)
+    ciphertext = cipher.encrypt(padded)
+    return iv + ciphertext
+
+
+def triple_des_cbc_decrypt(ciphertext, key):
+    """Triple DES mode CBC."""
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:24].ljust(24, b'\x00')
+
+    iv = ciphertext[:DES3.block_size]
+    actual_ciphertext = ciphertext[DES3.block_size:]
+    cipher = DES3.new(key, DES3.MODE_CBC, iv=iv)
+    decrypted = cipher.decrypt(actual_ciphertext)
+    return unpad(decrypted, DES3.block_size).decode('utf-8')
+
+
+def create_ecb_vulnerability_image():
     """
-    3DES: E_k1(D_k2(E_k3(plaintext)))
-    Si key3 est None, on utilise key1 (mode EDE avec 2 clés)
+    Crée une image simple pour démontrer la faiblesse d'ECB.
+    Les motifs restent visibles dans l'image chiffrée.
     """
-    if key3 is None:
-        key3 = key1  # Mode 2-clés: K1=K3
-    encrypted = des_encrypt(plaintext, key3)
-    decrypted = des_decrypt(encrypted, key2)
-    return des_encrypt(decrypted, key1)
-
-def _3des_decrypt(ciphertext, key1, key2, key3=None):
-    if key3 is None:
-        key3 = key1
-    decrypted = des_decrypt(ciphertext, key1)
-    encrypted = des_encrypt(decrypted, key2)
-    return des_decrypt(encrypted, key3)
-
-
-# ─────────────────────────────────────────────
-#  DESX (Whitening)
-# ─────────────────────────────────────────────
-
-def desx_encrypt(plaintext, key, whitening_key1, whitening_key2):
-    """
-    DESX: whitening_key1 XOR DES(key, plaintext XOR whitening_key2)
-    """
-    if isinstance(plaintext, str):
-        plaintext = plaintext.encode('utf-8')
-
-    # XOR initial avec whitening_key2
-    xored = bytes([p ^ w for p, w in zip(plaintext, whitening_key1 * (len(plaintext)//8 + 1))])
-
-    # DES normal
-    des_enc = des_encrypt(xored, key)
-
-    # XOR final avec whitening_key1
-    final = bytes([d ^ w for d, w in zip(des_enc, whitening_key2 * (len(des_enc)//8 + 1))])
-
-    return final
-
-def desx_decrypt(ciphertext, key, whitening_key1, whitening_key2):
-    # XOR initial avec whitening_key1
-    xored = bytes([c ^ w for c, w in zip(ciphertext, whitening_key2 * (len(ciphertext)//8 + 1))])
-
-    # DES normal
-    des_dec = des_decrypt(xored, key)
-
-    # XOR final avec whitening_key2
-    if isinstance(des_dec, str):
-        des_dec = des_dec.encode('utf-8')
-    final = bytes([d ^ w for d, w in zip(des_dec, whitening_key1 * (len(des_dec)//8 + 1))])
-
-    return final.decode('utf-8')
-
-
-# ─────────────────────────────────────────────
-#  Démonstration
-# ─────────────────────────────────────────────
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("  DES, 2DES, 3DES, DESX - Démonstration")
+    print("\n" + "=" * 60)
+    print("  DÉMONSTRATION FAIBLESSE ECB")
+  print("  (Les motifs restent visibles)")
     print("=" * 60)
 
-    message = input("\n📝 Entrez un message à chiffrer : ")
-    password = input("🔑 Entrez un mot de passe : ")
+    # Créer une image 64x64 pixels avec des motifs
+    img = Image.new('RGB', (64, 64))
+    pixels = img.load()
+
+    # Motif : carré blanc sur fond noir
+    for i in range(64):
+        for j in range(64):
+            if 16 <= i < 48 and 16 <= j < 48:
+                pixels[i, j] = (255, 255, 255)  # Blanc
+            elif (i // 8) % 2 == (j // 8) % 2:
+                pixels[i, j] = (100, 100, 100)  # Gris
+            else:
+                pixels[i, j] = (0, 0, 0)  # Noir
+
+    img.save("original_image.png")
+    print("✅ Image originale créée : original_image.png")
+
+    # Chiffrer avec ECB
+    key = b"12345678"
+    img_bytes = np.array(img).tobytes()
+
+    cipher_ecb = DES.new(key, DES.MODE_ECB)
+    padded = pad(img_bytes, DES.block_size)
+    encrypted_ecb = cipher_ecb.encrypt(padded)
+
+    # Reconstruire l'image chiffrée
+    encrypted_array = np.frombuffer(encrypted_ecb[:64*64*3], dtype=np.uint8)
+    encrypted_img = Image.frombytes('RGB', (64, 64), encrypted_array.tobytes())
+    encrypted_img.save("encrypted_ecb_image.png")
+    print("✅ Image chiffrée ECB créée : encrypted_ecb_image.png")
+    print("   (Observez que les motifs restent VISIBLES !)")
+
+    # Chiffrer avec CBC pour comparaison
+    iv = get_random_bytes(DES.block_size)
+    cipher_cbc = DES.new(key, DES.MODE_CBC, iv=iv)
+    encrypted_cbc = cipher_cbc.encrypt(padded)
+
+    encrypted_cbc_array = np.frombuffer(encrypted_cbc[:64*64*3], dtype=np.uint8)
+    encrypted_cbc_img = Image.frombytes('RGB', (64, 64), encrypted_cbc_array.tobytes())
+    encrypted_cbc_img.save("encrypted_cbc_image.png")
+    print("✅ Image chiffrée CBC créée : encrypted_cbc_image.png")
+    print("   (Aucun motif visible normalement)")
+
+
+def benchmark_des_vs_3des(size_mb=1):
+    """Compare les performances DES vs 3DES."""
+    print("\n" + "=" * 60)
+    print(f"  BENCHMARK DES vs 3DES (sur {size_mb} Mo)")
+    print("=" * 60)
+
+    data = os.urandom(size_mb * 1024 * 1024)
+    des_key = b"12345678"
+    tdes_key = b"123456789012345678901234"
 
     # DES
-    print("\n" + "-" * 40)
-    print("  DES (Data Encryption Standard)")
-    print("-" * 40)
-    encrypted = des_encrypt(message, password)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = des_decrypt(encrypted, password)
-    print(f"   Déchiffré     : {decrypted}")
+    start = time.time()
+    cipher_des = DES.new(des_key, DES.MODE_ECB)
+    encrypted_des = cipher_des.encrypt(pad(data, DES.block_size))
+    des_time = time.time() - start
+    print(f"DES   : {des_time:.4f} secondes (débit: {size_mb/des_time:.2f} Mo/s)")
 
-    # 3DES (plus sécurisé)
-    print("\n" + "-" * 40)
-    print("  3DES (Triple DES)")
-    print("-" * 40)
-    pwd2 = input("🔑 Deuxième mot de passe (3DES) : ")
-    encrypted = _3des_encrypt(message, password, pwd2)
-    print(f"   Chiffré (hex) : {encrypted.hex()}")
-    decrypted = _3des_decrypt(encrypted, password, pwd2)
-    print(f"   Déchiffré     : {decrypted}")
+    # 3DES
+    start = time.time()
+    cipher_tdes = DES3.new(tdes_key, DES3.MODE_ECB)
+    encrypted_tdes = cipher_tdes.encrypt(pad(data, DES3.block_size))
+    tdes_time = time.time() - start
+    print(f"3DES  : {tdes_time:.4f} secondes (débit: {size_mb/tdes_time:.2f} Mo/s)")
 
-    print("\n✅ Tous les chiffrements DES fonctionnent !")
+    print(f"\n3DES est {tdes_time/des_time:.1f}x plus lent que DES")
+
+
+def compare_ecb_cbc():
+    """Compare ECB et CBC sur un texte."""
+    print("\n" + "=" * 60)
+    print("  COMPARAISON ECB vs CBC")
+    print("=" * 60)
+
+    key = b"12345678"
+    iv = get_random_bytes(DES.block_size)
+    plaintext = "A" * 128 + "B" * 128  # Texte répétitif
+
+    print(f"Plaintext : {plaintext[:50]}... (répétitif)")
+
+    # ECB
+    cipher_ecb = DES.new(key, DES.MODE_ECB)
+    encrypted_ecb = cipher_ecb.encrypt(pad(plaintext.encode(), DES.block_size))
+    print(f"\nECB - Blocs identiques → chiffrés identiques :")
+    print(f"  Premier bloc : {encrypted_ecb[:8].hex()}")
+    print(f"  Deuxième bloc: {encrypted_ecb[8:16].hex()}")
+    print(f"  => Les blocs identiques produisent le même chiffré!")
+
+    # CBC
+    cipher_cbc = DES.new(key, DES.MODE_CBC, iv=iv)
+    encrypted_cbc = cipher_cbc.encrypt(pad(plaintext.encode(), DES.block_size))
+    print(f"\nCBC - Même texte, chiffré différent :")
+    print(f"  Premier bloc : {encrypted_cbc[:8].hex()}")
+    print(f"  Deuxième bloc: {encrypted_cbc[8:16].hex()}")
+    print(f"  => Les blocs identiques produisent des chiffrés différents!")
+
+
+def menu():
+    print("\n" + "=" * 50)
+    print("      DES / 3DES")
+    print("=" * 50)
+    print("1. Chiffrer/Déchiffrer (CBC)")
+    print("2. Comparer ECB vs CBC")
+    print("3. Visualiser faiblesse ECB (image)")
+    print("4. Benchmark DES vs 3DES")
+    print("5. Quitter")
+    print("-" * 50)
+
+
+if __name__ == "__main__":
+    while True:
+        menu()
+
+        try:
+            choix = int(input("Choisissez une option : "))
+
+            if choix == 5:
+                print("Au revoir !")
+                break
+
+            if choix == 1:
+                mode = input("Chiffrer (c) ou Déchiffrer (d) ? ").lower()
+                key = input("🔑 Entrez la clé (8 caractères) : ")[:8]
+
+                if mode == 'c':
+                    test = input("Voulez-vous (t)ester ou (u)tiliser votre propre texte ? ").lower()
+                    if test == 't':
+                        message = "Message secret DES"
+                        print(f"Message de test : {message}")
+                    else:
+                        message = input("📝 Entrez le message à chiffrer : ")
+
+                    ciphertext = des_cbc_encrypt(message, key)
+                    print(f"IV + Chiffré (hex) : {ciphertext.hex()}")
+
+                else:
+                    test = input("Voulez-vous (t)ester ou (u)tiliser votre propre texte ? ").lower()
+                    if test == 't':
+                        message = "Message secret DES"
+                        ciphertext = des_cbc_encrypt(message, key)
+                        print(f"IV + Chiffré de test : {ciphertext.hex()}")
+                    else:
+                        ciphertext_hex = input("Entrez l'IV + chiffré (hex) : ")
+                        ciphertext = bytes.fromhex(ciphertext_hex)
+
+                    decrypted = des_cbc_decrypt(ciphertext, key)
+                    print(f"Message déchiffré : {decrypted}")
+
+            elif choix == 2:
+                compare_ecb_cbc()
+
+            elif choix == 3:
+                create_ecb_vulnerability_image()
+                print("\n📁 Ouvrez 'encrypted_ecb_image.png' avec un visualiseur d'images")
+                print("   Vous verrez que les motifs sont encore VISIBLES !")
+                print("   C'est la faiblesse majeure du mode ECB.")
+
+            elif choix == 4:
+                size = float(input("Taille en Mo (ex: 1) : ") or "1")
+                benchmark_des_vs_3des(size)
+
+        except Exception as e:
+            print(f"Erreur : {e}")
