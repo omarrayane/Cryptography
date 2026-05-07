@@ -1,0 +1,923 @@
+% ============================================================
+%  RAPPORT - PROJET DE CRYPTOGRAPHIE
+%  USTHB - 2024/2025
+% ============================================================
+\documentclass[12pt,a4paper]{report}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{float}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black}
+
+% Style Python
+\definecolor{codebg}{RGB}{245,245,250}
+\definecolor{codeframe}{RGB}{100,100,180}
+\definecolor{keyword}{RGB}{0,0,180}
+\definecolor{string}{RGB}{163,21,21}
+\definecolor{comment}{RGB}{0,128,0}
+
+\lstdefinestyle{python}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{keyword}\bfseries,
+  stringstyle=\color{string},
+  commentstyle=\color{comment}\itshape,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+  captionpos=b
+}
+
+% En-tête/Pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Projet de Cryptographie}
+\fancyhead[R]{\small USTHB 2024/2025}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+% ============================================================
+%  PAGE DE GARDE
+% ============================================================
+\begin{titlepage}
+\begin{center}
+
+\vspace*{0.5cm}
+
+% Logo USTHB
+\includegraphics[width=3.5cm]{usthb_logo.png}
+
+\vspace{0.5cm}
+
+{\Large \textbf{République Algérienne Démocratique et Populaire}}\\[0.3cm]
+{\large Ministère de l'Enseignement Supérieur et de la Recherche Scientifique}\\[0.5cm]
+
+\rule{\textwidth}{1.5pt}\\[0.4cm]
+{\LARGE \textbf{Université des Sciences et de la Technologie\\Houari Boumediene}}\\[0.2cm]
+{\large Faculté d'Informatique}\\[0.1cm]
+\rule{\textwidth}{1.5pt}
+
+\vspace{1.5cm}
+
+{\Huge \textbf{Rapport de Projet}}\\[0.5cm]
+{\LARGE \textbf{Cryptographie}}\\[0.3cm]
+{\large Implémentation des algorithmes cryptographiques en Python}
+
+\vspace{1.5cm}
+
+\begin{tcolorbox}[colback=blue!5,colframe=blue!40!black,title=\textbf{Réalisé par},width=12cm]
+\begin{tabularx}{\textwidth}{X l}
+\textbf{Likou Yani Anis} & 232331741011 \\
+\textbf{Daoud Omar Rayane} & 232332447215 \\
+\textbf{Benchetioui Ahmed Ayoub} & 232331451018 \\
+\end{tabularx}
+\end{tcolorbox}
+
+\vfill
+
+{\large \textbf{Année universitaire : 2024/2025}}
+
+\end{center}
+\end{titlepage}
+
+% ============================================================
+%  TABLE DES MATIÈRES
+% ============================================================
+\tableofcontents
+\newpage
+
+% ============================================================
+%  INTRODUCTION
+% ============================================================
+\chapter{Introduction}
+
+\section{Contexte}
+La cryptographie est la science de la protection de l'information par le biais de techniques mathématiques. Elle joue un rôle fondamental dans la sécurisation des communications numériques modernes, que ce soit pour le chiffrement des données, l'authentification des utilisateurs ou la vérification de l'intégrité des messages.
+
+\section{Objectifs du projet}
+Ce projet a pour objectif l'implémentation en Python des principaux algorithmes cryptographiques étudiés en cours, couvrant :
+\begin{itemize}
+    \item Les \textbf{chiffrements classiques} : César, Affine, Vigenère, Hill, Playfair, OTP, Substitution aléatoire
+    \item Les \textbf{outils de cryptanalyse} : Analyse fréquentielle, Indice de coïncidence, Test de Kasiski
+    \item Le \textbf{chiffrement symétrique (synchrone)} : DES, 2DES, 3DES, DESX, AES (ECB/CBC/CTR), RC4
+    \item Le \textbf{chiffrement asymétrique} : RSA, ElGamal, Diffie-Hellman, AES-256
+    \item Les \textbf{fonctions de hachage} : MD5, SHA-256, SHA-512, HMAC
+    \item Les \textbf{signatures numériques} : RSA, ElGamal, DSA, ECDSA
+    \item Un \textbf{canal de communication sécurisé} : Client/Serveur avec RSA + AES-GCM
+\end{itemize}
+
+\section{Structure du projet}
+Le projet est organisé en répertoires thématiques :
+\begin{verbatim}
+Cryptography/
+├── Classical Ciphers/    # Chiffrements classiques
+├── Synchrone/            # Chiffrement symétrique (DES, AES, RC4)
+├── asynchrone/           # Chiffrement asymétrique (RSA, ElGamal, DH)
+├── Hashing/              # Fonctions de hachage
+├── Signatures/           # Signatures numériques
+└── secure_Channel/       # Canal sécurisé Client/Serveur
+\end{verbatim}
+
+\section{Comment exécuter}
+Chaque script est exécutable indépendamment :
+\begin{lstlisting}[style=python,title=Exécution d'un script]
+python "Classical Ciphers/Cesar.py"
+python Synchrone/AES.PY
+python asynchrone/RSA.py
+\end{lstlisting}
+Pour le canal sécurisé, lancer d'abord le serveur puis le client dans deux terminaux séparés.
+
+% ============================================================
+%  CHAPITRE 2 : CHIFFREMENTS CLASSIQUES
+% ============================================================
+\chapter{Chiffrements Classiques}
+
+% --- CESAR ---
+\section{Chiffrement de César}
+
+\subsection{Principe}
+Le chiffrement de César est un chiffrement par substitution mono-alphabétique. Chaque lettre du texte clair est décalée d'un nombre fixe de positions dans l'alphabet.
+
+\textbf{Formules :}
+\begin{align}
+\text{Chiffrement :} \quad E(x) &= (x + k) \mod 26 \\
+\text{Déchiffrement :} \quad D(x) &= (x - k) \mod 26
+\end{align}
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=Cesar.py - Fonctions principales]
+def cesar_encrypt(text: str, shift: int) -> str:
+    result = ""
+    for char in text:
+        if char.isalpha():
+            ascii_offset = ord('A') if char.isupper() else ord('a')
+            result += chr((ord(char) - ascii_offset + shift) % 26
+                         + ascii_offset)
+        else:
+            result += char
+    return result
+
+def cesar_decrypt(text: str, shift: int) -> str:
+    return cesar_encrypt(text, -shift)
+\end{lstlisting}
+
+\subsection{Fonctionnement}
+Le programme propose un menu interactif permettant de chiffrer ou déchiffrer un texte avec une clé entière positive. Le déchiffrement réutilise la fonction de chiffrement avec un décalage négatif.
+
+% --- AFFINE ---
+\section{Chiffrement Affine}
+
+\subsection{Principe}
+Le chiffrement affine utilise une fonction affine pour le chiffrement :
+\begin{align}
+E(x) &= (a \cdot x + b) \mod 26 \\
+D(y) &= a^{-1} \cdot (y - b) \mod 26
+\end{align}
+où $a$ doit être premier avec 26 (i.e. $\gcd(a, 26) = 1$).
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=affine.py - Fonctions principales]
+def affine_encrypt(text: str, a: int, b: int) -> str:
+    result = ""
+    for char in text:
+        if char.isalpha():
+            ascii_offset = ord('A') if char.isupper() else ord('a')
+            x = ord(char) - ascii_offset
+            y = (a * x + b) % 26
+            result += chr(y + ascii_offset)
+        else:
+            result += char
+    return result
+
+def affine_decrypt(text: str, a: int, b: int) -> str:
+    try:
+        a_inv = pow(a, -1, 26)
+    except ValueError:
+        raise ValueError("L'inverse n'existe pas")
+    result = ""
+    for char in text:
+        if char.isalpha():
+            ascii_offset = ord('A') if char.isupper() else ord('a')
+            y = ord(char) - ascii_offset
+            x = (a_inv * (y - b)) % 26
+            result += chr(x + ascii_offset)
+        else:
+            result += char
+    return result
+\end{lstlisting}
+
+L'inverse modulaire est calculé avec l'algorithme d'Euclide étendu via \texttt{pow(a, -1, 26)}.
+
+% --- VIGENERE ---
+\section{Chiffrement de Vigenère}
+
+\subsection{Principe}
+Le chiffrement de Vigenère est un chiffrement polyalphabétique utilisant un mot-clé. Chaque lettre du texte est décalée selon la lettre correspondante de la clé :
+$$E(x_i) = (x_i + k_{i \bmod n}) \mod 26$$
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=vigenere.py]
+def vigenere_encrypt(text: str, key: str) -> str:
+    result = ""
+    key = key.upper()
+    key_length = len(key)
+    key_as_int = [ord(k) - ord('A') for k in key]
+    for i, char in enumerate(text):
+        if char.isalpha():
+            key_index = i % key_length
+            key_shift = key_as_int[key_index]
+            if char.isupper():
+                result += chr((ord(char) - ord('A') + key_shift)
+                             % 26 + ord('A'))
+            else:
+                result += chr((ord(char) - ord('a') + key_shift)
+                             % 26 + ord('a'))
+        else:
+            result += char
+    return result
+
+def vigenere_decrypt(text: str, key: str) -> str:
+    # Meme logique avec soustraction du decalage
+    ...
+\end{lstlisting}
+
+% --- HILL ---
+\section{Chiffrement de Hill}
+
+\subsection{Principe}
+Le chiffrement de Hill utilise l'algèbre linéaire. Le texte est découpé en vecteurs de taille $n$ et multiplié par une matrice-clé $K$ de taille $n \times n$ modulo 26. Le déchiffrement utilise la matrice inverse $K^{-1} \mod 26$.
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=Hill.py - Chiffrement]
+def hill_encrypt(text: str, key_matrix: np.ndarray) -> str:
+    n = key_matrix.shape[0]
+    text = ''.join(c for c in text if c.isalpha()).lower()
+    if len(text) % n != 0:
+        text += 'x' * (n - len(text) % n)  # padding
+    vectors = []
+    for i in range(0, len(text), n):
+        vector = [ord(text[i + j]) - ord('a') for j in range(n)]
+        vectors.append(vector)
+    result = ""
+    for vector in vectors:
+        encrypted_vector = np.dot(key_matrix, vector) % 26
+        for num in encrypted_vector:
+            result += chr(int(num) + ord('a'))
+    return result
+
+def hill_decrypt(text: str, key_matrix: np.ndarray) -> str:
+    inverse_key = matrix_mod_inverse(key_matrix, 26)
+    return hill_encrypt(text, inverse_key)
+\end{lstlisting}
+
+% --- PLAYFAIR ---
+\section{Chiffrement de Playfair}
+
+\subsection{Principe}
+Le chiffrement de Playfair utilise une matrice 5$\times$5 construite à partir d'un mot-clé. Le texte est découpé en bigrammes, et chaque paire est chiffrée selon trois règles : même ligne, même colonne, ou rectangle.
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=Playfair.py - Construction de la matrice]
+def create_playfair_matrix(key: str) -> List[List[str]]:
+    key = key.upper().replace('J', 'I')
+    alphabet = []
+    for char in key + 'ABCDEFGHIKLMNOPQRSTUVWXYZ':
+        if char not in alphabet and char.isalpha():
+            alphabet.append(char)
+    matrix = []
+    for i in range(0, 25, 5):
+        matrix.append(alphabet[i:i + 5])
+    return matrix
+\end{lstlisting}
+
+% --- OTP ---
+\section{One-Time Pad (OTP)}
+
+\subsection{Principe}
+Le One-Time Pad est le seul chiffrement théoriquement incassable. Il utilise une clé aléatoire de même longueur que le message et effectue un XOR bit à bit.
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=OTP.py]
+import os
+
+def otp_encrypt(message: str) -> tuple[bytes, bytes]:
+    message_bytes = message.encode("utf-8")
+    key = os.urandom(len(message_bytes))
+    ciphertext = bytes(m ^ k for m, k in zip(message_bytes, key))
+    return ciphertext, key
+
+def otp_decrypt(ciphertext: bytes, key: bytes) -> str:
+    message_bytes = bytes(c ^ k for c, k in zip(ciphertext, key))
+    return message_bytes.decode("utf-8")
+\end{lstlisting}
+
+% --- SUBSTITUTION ---
+\section{Substitution Aléatoire}
+
+\subsection{Principe}
+Chaque lettre de l'alphabet est remplacée par une autre lettre selon une table de substitution générée aléatoirement.
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=Substitution\_Aleatoire.py]
+import random, string
+from typing import Dict
+
+def generate_random_substitution() -> Dict[str, str]:
+    alphabet = string.ascii_lowercase
+    shuffled = list(alphabet)
+    random.shuffle(shuffled)
+    return {alphabet[i]: shuffled[i] for i in range(len(alphabet))}
+
+def substitution_encrypt(text, substitution_table):
+    result = ""
+    for char in text.lower():
+        if char in substitution_table:
+            result += substitution_table[char]
+        else:
+            result += char
+    return result
+\end{lstlisting}
+
+% ============================================================
+%  CHAPITRE 3 : CRYPTANALYSE
+% ============================================================
+\chapter{Outils de Cryptanalyse}
+
+\section{Analyse Fréquentielle}
+
+\subsection{Principe}
+L'analyse fréquentielle compare la fréquence des lettres d'un texte chiffré aux fréquences théoriques de la langue (ici le français). Cela permet de casser les chiffrements par substitution mono-alphabétique.
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=AnalyseFrequentielle.py]
+FRENCH_FREQ = {
+    'A': 7.636, 'B': 0.901, 'C': 3.260, 'E': 14.715, ...
+}
+
+def analyse_frequentielle(texte):
+    texte = normalize_text(texte)
+    lettres = [c for c in texte if c in string.ascii_lowercase]
+    total = len(lettres)
+    compte = Counter(lettres)
+    frequences = {l: (compte[l] / total) * 100 for l in compte}
+    return frequences
+\end{lstlisting}
+Le programme génère aussi un histogramme comparatif avec \texttt{matplotlib}.
+
+\section{Indice de Coïncidence}
+
+\subsection{Principe}
+L'indice de coïncidence (IC) mesure la probabilité que deux lettres choisies au hasard soient identiques :
+$$IC = \frac{\sum_{i=1}^{26} n_i(n_i - 1)}{N(N-1)}$$
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=IndiceDeCoincidence.py]
+def indice_coincidence(text):
+    text = normalize_text(text)
+    letters = [c for c in text if c in string.ascii_lowercase]
+    N = len(letters)
+    if N <= 1:
+        return 0
+    counts = Counter(letters)
+    somme = sum(n * (n - 1) for n in counts.values())
+    return somme / (N * (N - 1))
+\end{lstlisting}
+
+\section{Test de Kasiski}
+
+\subsection{Principe}
+Le test de Kasiski permet d'estimer la longueur de la clé d'un chiffrement de Vigenère en recherchant les séquences répétées et en calculant le PGCD des distances entre ces répétitions.
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=TestDeKasiski.py - Fonctions clés]
+def find_repeated_sequences(ciphertext, min_length=3):
+    sequences = {}
+    for i in range(len(ciphertext) - min_length + 1):
+        seq = ciphertext[i:i + min_length]
+        if seq in sequences:
+            sequences[seq].append(i)
+        else:
+            sequences[seq] = [i]
+    gaps = []
+    for seq, positions in sequences.items():
+        if len(positions) > 1:
+            for j in range(1, len(positions)):
+                gaps.append(positions[j] - positions[j - 1])
+    return gaps
+
+def find_key_length(ciphertext):
+    gaps = find_repeated_sequences(ciphertext)
+    if not gaps:
+        return None
+    return reduce(gcd, gaps)
+\end{lstlisting}
+
+
+
+
+% ============================================================
+%  CHAPITRES 4-8 : Suite du rapport
+%  Ce fichier sera fusionné dans le rapport final
+% ============================================================
+
+% ============================================================
+%  CHAPITRE 4 : CHIFFREMENT SYMÉTRIQUE
+% ============================================================
+\chapter{Chiffrement Symétrique (Synchrone)}
+
+\section{DES (Data Encryption Standard)}
+
+\subsection{Principe}
+Le DES est un algorithme de chiffrement par blocs de 64 bits avec une clé de 56 bits. Il utilise un réseau de Feistel à 16 rounds. Notre implémentation inclut également le 2DES, 3DES et DESX.
+
+\subsection{Architecture}
+L'algorithme se décompose en :
+\begin{enumerate}
+    \item \textbf{Permutation initiale (IP)} : réarrangement des 64 bits
+    \item \textbf{16 rounds de Feistel} : chaque round applique expansion, XOR avec sous-clé, S-Boxes et permutation P
+    \item \textbf{Permutation finale (FP)} : inverse de IP
+\end{enumerate}
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=DES.py - Fonction de Feistel]
+def feistel(right, subkey):
+    expanded = permute(right, E)  # 32 -> 48 bits
+    xored = xor_bits(expanded, subkey)
+    sbox_output = []
+    for i in range(8):
+        block = xored[i*6:(i+1)*6]
+        row = (block[0] << 1) | block[5]
+        col = (block[1]<<3)|(block[2]<<2)|(block[3]<<1)|block[4]
+        sbox_output.extend(
+            [int(b) for b in format(S_BOXES[i][row][col], '04b')]
+        )
+    return permute(sbox_output, P)
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption=DES.py - Chiffrement d'un bloc]
+def des_encrypt_block(block_64bits, subkeys):
+    state = permute(block_64bits, IP)
+    L, R = state[:32], state[32:]
+    for i in range(16):
+        new_L = R
+        new_R = xor_bits(L, feistel(R, subkeys[i]))
+        L, R = new_L, new_R
+    return permute(R + L, FP)
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption=DES.py - Triple DES]
+def _3des_encrypt(plaintext, key1, key2, key3=None):
+    """3DES: E_k1(D_k2(E_k3(plaintext)))"""
+    if key3 is None:
+        key3 = key1  # Mode 2-cles: K1=K3
+    encrypted = des_encrypt(plaintext, key3)
+    decrypted = des_decrypt(encrypted, key2)
+    return des_encrypt(decrypted, key1)
+\end{lstlisting}
+
+\subsection{Variantes implémentées}
+\begin{itemize}
+    \item \textbf{DES simple} : chiffrement ECB avec blocs de 64 bits
+    \item \textbf{2DES} : double application du DES avec deux clés
+    \item \textbf{3DES (EDE)} : triple application Encrypt-Decrypt-Encrypt
+    \item \textbf{DESX} : ajout de whitening keys (XOR avant/après DES)
+\end{itemize}
+
+\section{AES (Advanced Encryption Standard)}
+
+\subsection{Principe}
+L'AES est le standard actuel de chiffrement symétrique. Il opère sur des blocs de 128 bits avec des clés de 128, 192 ou 256 bits. Les opérations principales sont : SubBytes, ShiftRows, MixColumns et AddRoundKey.
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=AES.PY - Opérations de base]
+def sub_bytes(state):
+    return [SBOX[b] for b in state]
+
+def shift_rows(state):
+    matrix = [state[i::4] for i in range(4)]
+    for i in range(4):
+        matrix[i] = matrix[i][i:] + matrix[i][:i]
+    result = [0] * 16
+    for i in range(4):
+        for j in range(4):
+            result[j*4 + i] = matrix[i][j]
+    return result
+
+def mix_columns(state):
+    result = list(state)
+    for i in range(4):
+        col = state[i*4:(i+1)*4]
+        result[i*4]   = gf_mul(2,col[0]) ^ gf_mul(3,col[1]) ^ col[2] ^ col[3]
+        result[i*4+1] = col[0] ^ gf_mul(2,col[1]) ^ gf_mul(3,col[2]) ^ col[3]
+        result[i*4+2] = col[0] ^ col[1] ^ gf_mul(2,col[2]) ^ gf_mul(3,col[3])
+        result[i*4+3] = gf_mul(3,col[0]) ^ col[1] ^ col[2] ^ gf_mul(2,col[3])
+    return result
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption=AES.PY - Chiffrement bloc AES]
+def aes_encrypt_block(plaintext_block, key):
+    round_keys, nr = key_expansion(key)
+    state = list(plaintext_block)
+    state = add_round_key(state, round_keys[0])
+    for r in range(1, nr):
+        state = sub_bytes(state)
+        state = shift_rows(state)
+        state = mix_columns(state)
+        state = add_round_key(state, round_keys[r])
+    # Round final (sans MixColumns)
+    state = sub_bytes(state)
+    state = shift_rows(state)
+    state = add_round_key(state, round_keys[nr])
+    return bytes(state)
+\end{lstlisting}
+
+\subsection{Modes implémentés}
+\begin{itemize}
+    \item \textbf{ECB} : chaque bloc chiffré indépendamment
+    \item \textbf{CBC} : chaînage avec XOR du bloc précédent
+    \item \textbf{CTR} : mode compteur (chiffrement de flux)
+\end{itemize}
+
+\section{RC4 (Rivest Cipher 4)}
+
+\subsection{Principe}
+RC4 est un chiffrement de flux (stream cipher). Il génère un flux pseudo-aléatoire (keystream) via deux algorithmes : KSA (Key Scheduling Algorithm) et PRGA (Pseudo-Random Generation Algorithm).
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=RC4.py - Algorithmes KSA et PRGA]
+class RC4:
+    def __init__(self, key):
+        if isinstance(key, str):
+            key = key.encode('utf-8')
+        self.key = key
+        self.S = list(range(256))
+        self._ksa(key)
+
+    def _ksa(self, key):
+        """Key Scheduling Algorithm"""
+        key_length = len(key)
+        j = 0
+        for i in range(256):
+            j = (j + self.S[i] + key[i % key_length]) % 256
+            self.S[i], self.S[j] = self.S[j], self.S[i]
+
+    def _prga(self):
+        """Pseudo-Random Generation Algorithm"""
+        self._i = (self._i + 1) % 256
+        self._j = (self._j + self.S[self._i]) % 256
+        self.S[self._i], self.S[self._j] = self.S[self._j], self.S[self._i]
+        return self.S[(self.S[self._i] + self.S[self._j]) % 256]
+
+    def encrypt(self, data):
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+        self._i = 0; self._j = 0
+        self.S = list(range(256))
+        self._ksa(self.key)
+        result = bytearray()
+        for byte in data:
+            result.append(byte ^ self._prga())
+        return bytes(result)
+\end{lstlisting}
+
+\subsection{Variantes implémentées}
+\begin{itemize}
+    \item \textbf{RC4 Standard} : implémentation classique
+    \item \textbf{RC4A} : variante avec deux S-boxes
+    \item \textbf{RC4Drop} : saute les N premiers bytes du keystream
+    \item \textbf{RC4WithHash} : clé dérivée via SHA-256
+\end{itemize}
+
+% ============================================================
+%  CHAPITRE 5 : CHIFFREMENT ASYMÉTRIQUE
+% ============================================================
+\chapter{Chiffrement Asymétrique}
+
+\section{RSA}
+
+\subsection{Principe}
+RSA repose sur la difficulté de factoriser de grands nombres. On choisit $p, q$ premiers, $n = p \cdot q$, $\phi = (p-1)(q-1)$, $e$ tel que $\gcd(e, \phi) = 1$ et $d = e^{-1} \mod \phi$.
+\begin{align}
+\text{Chiffrement :} \quad c &= m^e \mod n \\
+\text{Déchiffrement :} \quad m &= c^d \mod n
+\end{align}
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=RSA.py]
+from math import gcd
+
+def mod_inverse(e, phi):
+    for d in range(1, phi):
+        if (d * e) % phi == 1:
+            return d
+    return None
+
+def generate_keys():
+    p = 61; q = 53
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    e = 17
+    while gcd(e, phi) != 1:
+        e += 1
+    d = mod_inverse(e, phi)
+    return (e, n), (d, n)
+
+def encrypt(message, public_key):
+    e, n = public_key
+    return [pow(ord(char), e, n) for char in message]
+
+def decrypt(cipher, private_key):
+    d, n = private_key
+    return ''.join([chr(pow(char, d, n)) for char in cipher])
+\end{lstlisting}
+
+\section{ElGamal}
+
+\subsection{Principe}
+ElGamal est basé sur le problème du logarithme discret. On choisit un nombre premier $p$, un générateur $g$, une clé privée $a$ et la clé publique $A = g^a \mod p$.
+\begin{align}
+\text{Chiffrement :} \quad c_1 &= g^k \mod p, \quad c_2 = m \cdot A^k \mod p \\
+\text{Déchiffrement :} \quad m &= c_2 \cdot (c_1^a)^{-1} \mod p
+\end{align}
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=ElGamal.py - Chiffrement/Dechiffrement]
+def encrypt(message, public_key):
+    p, g, A = public_key
+    cipher = []
+    for char in message:
+        m = ord(char)
+        k = random.randint(2, p - 2)
+        c1 = pow(g, k, p)
+        c2 = (m * pow(A, k, p)) % p
+        cipher.append((c1, c2))
+    return cipher
+
+def decrypt(cipher, private_key, p):
+    a = private_key
+    message = ""
+    for c1, c2 in cipher:
+        s = pow(c1, a, p)
+        s_inv = mod_inverse(s, p)  # Fermat: a^(p-2) mod p
+        m = (c2 * s_inv) % p
+        message += chr(m)
+    return message
+\end{lstlisting}
+
+\section{Diffie-Hellman}
+
+\subsection{Principe}
+Diffie-Hellman permet à deux parties d'établir un secret partagé via un canal non sécurisé. Avec $p$ premier et $g$ racine primitive :
+\begin{enumerate}
+    \item Alice choisit $a$, calcule $A = g^a \mod p$
+    \item Bob choisit $b$, calcule $B = g^b \mod p$
+    \item Secret partagé : $s = B^a \mod p = A^b \mod p$
+\end{enumerate}
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=Diffie\_Hellman.py]
+def generate_dh_parameters():
+    p = 23; g = 5  # parametres pedagogiques
+    return p, g
+
+def generate_public_key(g, private_key, p):
+    return pow(g, private_key, p)
+
+def compute_shared_secret(other_public, private_key, p):
+    return pow(other_public, private_key, p)
+
+def derive_aes_key(shared_secret):
+    """Derive une cle AES-256 via SHA-256"""
+    secret_bytes = str(shared_secret).encode('utf-8')
+    return hashlib.sha256(secret_bytes).digest()
+\end{lstlisting}
+
+% ============================================================
+%  CHAPITRE 6 : HACHAGE
+% ============================================================
+\chapter{Fonctions de Hachage}
+
+\section{Principe général}
+Les fonctions de hachage produisent une empreinte de taille fixe à partir d'un message de taille quelconque. Propriétés essentielles : résistance aux collisions, résistance à la pré-image, effet avalanche.
+
+\section{MD5}
+\begin{lstlisting}[style=python,caption=MD5.py]
+import hashlib
+
+def md5_hash():
+    word = input("Enter the word to hash with MD5: ")
+    hash_obj = hashlib.md5()
+    hash_obj.update(word.encode('utf-8'))
+    hashed_word = hash_obj.hexdigest()
+    print(f"MD5 Hash: {hashed_word}")
+\end{lstlisting}
+MD5 produit un hash de 128 bits (32 caractères hexadécimaux). \textbf{Note :} MD5 est considéré comme non sécurisé pour les usages cryptographiques.
+
+\section{SHA-256 et SHA-512}
+\begin{lstlisting}[style=python,caption=SHA256.py]
+def sha256_hash():
+    word = input("Enter the word to hash with SHA256: ")
+    hash_obj = hashlib.sha256()
+    hash_obj.update(word.encode('utf-8'))
+    print(f"SHA256 Hash: {hash_obj.hexdigest()}")
+\end{lstlisting}
+SHA-256 produit 256 bits, SHA-512 produit 512 bits. Ces fonctions font partie de la famille SHA-2 et sont largement utilisées en production.
+
+\section{HMAC}
+\begin{lstlisting}[style=python,caption=HMAC.py]
+import hmac, hashlib
+
+def hmac_hash():
+    word = input("Enter the word to hash with HMAC: ")
+    key = input("Enter the secret key for HMAC: ")
+    hmac_obj = hmac.new(
+        key.encode('utf-8'),
+        word.encode('utf-8'),
+        hashlib.sha256
+    )
+    print(f"HMAC (SHA256) Hash: {hmac_obj.hexdigest()}")
+\end{lstlisting}
+HMAC combine une fonction de hachage avec une clé secrète pour vérifier l'intégrité et l'authenticité des messages.
+
+% ============================================================
+%  CHAPITRE 7 : SIGNATURES NUMÉRIQUES
+% ============================================================
+\chapter{Signatures Numériques}
+
+\section{Principe}
+Une signature numérique garantit l'authenticité et la non-répudiation d'un message. L'expéditeur signe avec sa clé privée, le destinataire vérifie avec la clé publique.
+
+\section{Signature RSA}
+\begin{lstlisting}[style=python,caption=Signatures.py - RSA PKCS\#1 v1.5 et PSS]
+class RSASignature:
+    def __init__(self, key_size=2048):
+        self.private_key = rsa.generate_private_key(
+            public_exponent=65537, key_size=key_size)
+        self.public_key = self.private_key.public_key()
+
+    def sign_pkcs1v15(self, message):
+        return self.private_key.sign(
+            message, padding.PKCS1v15(), hashes.SHA256())
+
+    def verify_pkcs1v15(self, message, signature):
+        try:
+            self.public_key.verify(
+                signature, message,
+                padding.PKCS1v15(), hashes.SHA256())
+            return True
+        except Exception:
+            return False
+\end{lstlisting}
+
+\section{Signature ElGamal}
+Implémentation complète avec génération de nombres premiers via \texttt{sympy}, recherche de racines primitives, signature et vérification :
+$$y^r \cdot r^s \equiv g^{H(m)} \pmod{p}$$
+
+\section{Signature DSA}
+Le DSA (Digital Signature Algorithm) est un standard NIST utilisant le problème du logarithme discret dans un sous-groupe.
+
+\section{Signature ECDSA}
+L'ECDSA utilise les courbes elliptiques (courbe SECP256R1) pour des signatures plus compactes avec le même niveau de sécurité.
+
+\section{Benchmark}
+Le programme inclut un benchmark comparatif mesurant les temps de signature et vérification pour chaque algorithme.
+
+% ============================================================
+%  CHAPITRE 8 : CANAL SÉCURISÉ
+% ============================================================
+\chapter{Canal de Communication Sécurisé}
+
+\section{Architecture}
+Le canal sécurisé implémente une communication Client/Serveur utilisant :
+\begin{itemize}
+    \item \textbf{RSA 2048} pour l'authentification et l'échange de clés
+    \item \textbf{AES-256 GCM} pour le chiffrement des messages
+    \item \textbf{RSA-PSS} pour la signature des messages
+    \item \textbf{RSA-OAEP} pour le chiffrement de la clé AES
+\end{itemize}
+
+\section{Génération des clés}
+\begin{lstlisting}[style=python,caption=keygen.py]
+def generate_keys(name):
+    """Genere une paire de cles RSA 2048"""
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend()
+    )
+    public_key = private_key.public_key()
+    # Sauvegarde en format PEM
+    with open(f"{name}_private_key.pem", "wb") as f:
+        f.write(private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ))
+\end{lstlisting}
+
+\section{Utilitaires cryptographiques}
+\begin{lstlisting}[style=python,caption=crypto\_utils.py - Chiffrement hybride]
+class CryptoTools:
+    @staticmethod
+    def encrypt_message(plaintext_bytes, peer_public_key):
+        """Chiffre avec AES-256 GCM"""
+        aes_key = AESGCM.generate_key(bit_length=256)
+        cipher = AESGCM(aes_key)
+        nonce = os.urandom(12)
+        ciphertext = cipher.encrypt(nonce, plaintext_bytes, None)
+        # Chiffrer la cle AES avec RSA-OAEP
+        encrypted_key = peer_public_key.encrypt(
+            aes_key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(), label=None
+            )
+        )
+        return encrypted_key, nonce, ciphertext
+\end{lstlisting}
+
+\section{Protocole de communication}
+\begin{enumerate}
+    \item Le message est \textbf{signé} avec la clé privée RSA de l'expéditeur (RSA-PSS)
+    \item Une clé AES-256 aléatoire est générée
+    \item Le message est \textbf{chiffré} avec AES-256-GCM
+    \item La clé AES est \textbf{chiffrée} avec la clé publique RSA du destinataire (OAEP)
+    \item Le paquet JSON contient : clé chiffrée, nonce, texte chiffré, signature
+\end{enumerate}
+
+\section{Exécution}
+\begin{lstlisting}[style=python,title=Lancement du canal securise]
+# Terminal 1 : Serveur
+python secure_Channel/keygen.py     # Generation des cles
+python secure_Channel/secure_channel_server.py
+
+# Terminal 2 : Client
+python secure_Channel/secure-channel-client.py
+\end{lstlisting}
+
+Le mode debug affiche les données chiffrées/déchiffrées pour visualiser le processus de sécurisation.
+
+% ============================================================
+%  CONCLUSION
+% ============================================================
+\chapter{Conclusion}
+
+Ce projet nous a permis d'implémenter et de comprendre en profondeur les principaux algorithmes cryptographiques, depuis les chiffrements classiques jusqu'aux protocoles modernes de communication sécurisée.
+
+\section{Résumé des implémentations}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Catégorie} & \textbf{Algorithmes} & \textbf{Fichiers} \\
+\hline
+Classiques & César, Affine, Vigenère, Hill, Playfair, OTP & 7 fichiers \\
+\hline
+Cryptanalyse & Fréquentielle, IC, Kasiski & 3 fichiers \\
+\hline
+Symétrique & DES/2DES/3DES/DESX, AES-128/192/256, RC4 & 3 fichiers \\
+\hline
+Asymétrique & RSA, ElGamal, Diffie-Hellman, AES-256 & 4 fichiers \\
+\hline
+Hachage & MD5, SHA-256, SHA-512, HMAC & 4 fichiers \\
+\hline
+Signatures & RSA, ElGamal, DSA, ECDSA & 1 fichier \\
+\hline
+Canal sécurisé & RSA+AES-GCM Client/Serveur & 4 fichiers \\
+\hline
+\end{tabular}
+\caption{Résumé des algorithmes implémentés}
+\end{table}
+
+\section{Compétences acquises}
+\begin{itemize}
+    \item Compréhension des fondements mathématiques de la cryptographie
+    \item Implémentation des algorithmes de chiffrement classiques et modernes
+    \item Mise en pratique des protocoles de sécurité (signatures, échange de clés)
+    \item Développement d'une application réseau sécurisée
+\end{itemize}
+
+\end{document}
