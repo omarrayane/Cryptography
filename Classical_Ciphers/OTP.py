@@ -15,6 +15,7 @@ def otp_encrypt(message: str) -> tuple:
 def otp_decrypt(ciphertext: bytes, key: bytes) -> str:
     """
     Déchiffre un message avec OTP.
+    (Fonction interne, pas exposée dans le menu)
     """
     if len(ciphertext) != len(key):
         raise ValueError("La clé doit avoir la même longueur que le ciphertext")
@@ -103,11 +104,13 @@ def menu():
     print("\n" + "=" * 50)
     print("      ONE-TIME PAD (VERNAM)")
     print("=" * 50)
-    print("1. Chiffrer un message")
-    print("2. Déchiffrer un message")
-    print("3. Démontrer vulnérabilité de réutilisation de clé")
-    print("4. Quitter")
+    print("1. Chiffrer un message (génère clé aléatoire unique)")
+    print("2. Démontrer vulnérabilité de réutilisation de clé")
+    print("3. Quitter")
     print("-" * 50)
+    print("\n⚠️  ATTENTION : OTP ne peut pas être déchiffré sans la clé !")
+    print("   La clé doit être transmise séparément au destinataire.")
+    print("   Le déchiffrement se fait manuellement avec la même clé.")
 
 
 if __name__ == "__main__":
@@ -115,9 +118,9 @@ if __name__ == "__main__":
         menu()
         
         try:
-            choix = int(input("Choisissez une option : "))
+            choix = int(input("\nChoisissez une option : "))
             
-            if choix == 4:
+            if choix == 3:
                 print("Au revoir !")
                 break
             
@@ -125,40 +128,23 @@ if __name__ == "__main__":
                 mode = input("Voulez-vous (t)ester avec un exemple ou (u)tiliser votre propre texte ? ").lower()
                 if mode == 't':
                     message = "Hello World"
-                    print(f"Message de test : {message}")
+                    print(f"\n📝 Message de test : {message}")
                 else:
-                    message = input("Entrez le message à chiffrer : ")
+                    message = input("\n📝 Entrez le message à chiffrer : ")
                 
                 ciphertext, key = otp_encrypt(message)
-                print(f"\nMessage chiffré (hex) : {ciphertext.hex()}")
-                print(f"Clé (hex) : {key.hex()}")
-                print(f"\n📌 Pour déchiffrer, utilisez l'option 2 avec ces valeurs.")
+                
+                print(f"\n🔒 Message chiffré (hex) : {ciphertext.hex()}")
+                print(f"🔑 Clé (hex) : {key.hex()}")
+                print(f"\n📌 Pour déchiffrer, l'autre personne doit avoir EXACTEMENT la même clé.")
+                print("   Chiffrement XOR : message ⊕ clé = ciphertext")
+                print("   Déchiffrement : ciphertext ⊕ clé = message")
             
             elif choix == 2:
-                mode = input("Voulez-vous (t)ester avec l'exemple précédent ou (u)tiliser vos propres valeurs ? ").lower()
-                if mode == 't':
-                    # Exemple simple
-                    test_msg = "Test"
-                    test_cipher, test_key = otp_encrypt(test_msg)
-                    ciphertext_hex = test_cipher.hex()
-                    key_hex = test_key.hex()
-                    print(f"Exemple - Ciphertext : {ciphertext_hex}")
-                    print(f"Exemple - Clé : {key_hex}")
-                else:
-                    ciphertext_hex = input("Entrez le ciphertext (hex) : ")
-                    key_hex = input("Entrez la clé (hex) : ")
-                
-                try:
-                    ciphertext = bytes.fromhex(ciphertext_hex)
-                    key = bytes.fromhex(key_hex)
-                    decrypted = otp_decrypt(ciphertext, key)
-                    print(f"Message déchiffré : {decrypted}")
-                except Exception as e:
-                    print(f"Erreur de déchiffrement : {e}")
-                    print("Assurez-vous que la clé a la même longueur que le ciphertext.")
-            
-            elif choix == 3:
                 demonstrate_otp_vulnerability()
+            
+            else:
+                print("Option invalide")
             
         except Exception as e:
             print(f"Erreur : {e}")
