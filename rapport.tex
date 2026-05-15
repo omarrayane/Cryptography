@@ -119,7 +119,7 @@ Ce projet a pour objectif l'implémentation en Python des principaux algorithmes
     \item Les \textbf{chiffrements classiques} : César, Affine, Vigenère, Hill, Playfair, OTP, Substitution aléatoire
     \item Les \textbf{outils de cryptanalyse} : Analyse fréquentielle, Indice de coïncidence, Test de Kasiski
     \item Le \textbf{chiffrement symétrique (synchrone)} : DES, 2DES, 3DES, DESX, AES (ECB/CBC/CTR), RC4
-    \item Le \textbf{chiffrement asymétrique} : RSA, ElGamal, Diffie-Hellman, AES-256
+    \item Le \textbf{chiffrement asymétrique} : RSA, ElGamal, Diffie-Hellman, ECC
     \item Les \textbf{fonctions de hachage} : MD5, SHA-256, SHA-512, HMAC
     \item Les \textbf{signatures numériques} : RSA, ElGamal, DSA, ECDSA
     \item Un \textbf{canal de communication sécurisé} : Client/Serveur avec RSA + AES-GCM
@@ -508,46 +508,26 @@ def _3des_encrypt(plaintext, key1, key2, key3=None):
 L'AES est le standard actuel de chiffrement symétrique. Il opère sur des blocs de 128 bits avec des clés de 128, 192 ou 256 bits. Les opérations principales sont : SubBytes, ShiftRows, MixColumns et AddRoundKey.
 
 \subsection{Code source}
-\begin{lstlisting}[style=python,caption=AES.PY - Opérations de base]
-def sub_bytes(state):
-    return [SBOX[b] for b in state]
+Notre implémentation a évolué pour utiliser la bibliothèque professionnelle \texttt{pycryptodome}, offrant des performances optimales et le support des modes ECB, CBC et CTR, tout en corrigeant les vulnérabilités de notre première approche manuelle.
 
-def shift_rows(state):
-    matrix = [state[i::4] for i in range(4)]
-    for i in range(4):
-        matrix[i] = matrix[i][i:] + matrix[i][:i]
-    result = [0] * 16
-    for i in range(4):
-        for j in range(4):
-            result[j*4 + i] = matrix[i][j]
-    return result
+\begin{lstlisting}[style=python,caption=AES.py - Chiffrement CBC]
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
 
-def mix_columns(state):
-    result = list(state)
-    for i in range(4):
-        col = state[i*4:(i+1)*4]
-        result[i*4]   = gf_mul(2,col[0]) ^ gf_mul(3,col[1]) ^ col[2] ^ col[3]
-        result[i*4+1] = col[0] ^ gf_mul(2,col[1]) ^ gf_mul(3,col[2]) ^ col[3]
-        result[i*4+2] = col[0] ^ col[1] ^ gf_mul(2,col[2]) ^ gf_mul(3,col[3])
-        result[i*4+3] = gf_mul(3,col[0]) ^ col[1] ^ col[2] ^ gf_mul(2,col[3])
-    return result
-\end{lstlisting}
+def aes_encrypt_cbc(data, key, iv=None):
+    """AES mode CBC."""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    if isinstance(key, str):
+        key = key.encode('utf-8')[:32].ljust(32, b'\x00')
+    if iv is None:
+        iv = get_random_bytes(AES.block_size)
 
-\begin{lstlisting}[style=python,caption=AES.PY - Chiffrement bloc AES]
-def aes_encrypt_block(plaintext_block, key):
-    round_keys, nr = key_expansion(key)
-    state = list(plaintext_block)
-    state = add_round_key(state, round_keys[0])
-    for r in range(1, nr):
-        state = sub_bytes(state)
-        state = shift_rows(state)
-        state = mix_columns(state)
-        state = add_round_key(state, round_keys[r])
-    # Round final (sans MixColumns)
-    state = sub_bytes(state)
-    state = shift_rows(state)
-    state = add_round_key(state, round_keys[nr])
-    return bytes(state)
+    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+    padded = pad(data, AES.block_size)
+    ciphertext = cipher.encrypt(padded)
+    return iv + ciphertext
 \end{lstlisting}
 
 \subsection{Modes implémentés}
@@ -622,32 +602,30 @@ RSA repose sur la difficulté de factoriser de grands nombres. On choisit $p, q$
 \end{align}
 
 \subsection{Code source}
-\begin{lstlisting}[style=python,caption=RSA.py]
-from math import gcd
+Le code a évolué d'une implémentation pédagogique basique vers l'utilisation de \texttt{cryptography} pour intégrer le padding sécurisé OAEP, essentiel contre les attaques sur RSA textbook, ainsi qu'une approche de chiffrement hybride pour de larges volumes de données.
 
-def mod_inverse(e, phi):
-    for d in range(1, phi):
-        if (d * e) % phi == 1:
-            return d
-    return None
+\begin{lstlisting}[style=python,caption=RSA.py - Génération et Chiffrement OAEP]
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
 
-def generate_keys():
-    p = 61; q = 53
-    n = p * q
-    phi = (p - 1) * (q - 1)
-    e = 17
-    while gcd(e, phi) != 1:
-        e += 1
-    d = mod_inverse(e, phi)
-    return (e, n), (d, n)
+def generate_rsa_key_pair(key_size: int = 2048):
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=key_size,
+        backend=default_backend()
+    )
+    return private_key, private_key.public_key()
 
-def encrypt(message, public_key):
-    e, n = public_key
-    return [pow(ord(char), e, n) for char in message]
-
-def decrypt(cipher, private_key):
-    d, n = private_key
-    return ''.join([chr(pow(char, d, n)) for char in cipher])
+def rsa_encrypt_oaep(message: bytes, public_key) -> bytes:
+    return public_key.encrypt(
+        message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
 \end{lstlisting}
 
 \section{ElGamal}
@@ -711,6 +689,33 @@ def derive_aes_key(shared_secret):
     return hashlib.sha256(secret_bytes).digest()
 \end{lstlisting}
 
+\section{Elliptic Curve Cryptography (ECC)}
+
+\subsection{Principe}
+La cryptographie sur les courbes elliptiques (ECC) offre un niveau de sécurité équivalent à RSA mais avec des clés beaucoup plus petites. Elle repose sur la difficulté du logarithme discret sur le groupe des points d'une courbe elliptique sur un corps fini.
+
+\subsection{Code source}
+\begin{lstlisting}[style=python,caption=ECC.py]
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+
+def generate_ecc_keys():
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    public_key = private_key.public_key()
+    return private_key, public_key
+
+def derive_shared_key(private_key, peer_public_key):
+    shared_key = private_key.exchange(ec.ECDH(), peer_public_key)
+    derived_key = HKDF(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=None,
+        info=b'handshake data',
+    ).derive(shared_key)
+    return derived_key
+\end{lstlisting}
+
 % ============================================================
 %  CHAPITRE 6 : HACHAGE
 % ============================================================
@@ -720,25 +725,34 @@ def derive_aes_key(shared_secret):
 Les fonctions de hachage produisent une empreinte de taille fixe à partir d'un message de taille quelconque. Propriétés essentielles : résistance aux collisions, résistance à la pré-image, effet avalanche.
 
 \section{MD5}
-\begin{lstlisting}[style=python,caption=MD5.py]
+\begin{lstlisting}[style=python,caption=MD5.py - Calcul du Hash]
 import hashlib
 
-def md5_hash():
-    word = input("Enter the word to hash with MD5: ")
-    hash_obj = hashlib.md5()
-    hash_obj.update(word.encode('utf-8'))
-    hashed_word = hash_obj.hexdigest()
-    print(f"MD5 Hash: {hashed_word}")
+def md5_hash(data):
+    """Calcule le hash MD5 d'une donnée."""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    return hashlib.md5(data).hexdigest()
 \end{lstlisting}
+Le script a été amélioré pour inclure des démonstrations de l'effet d'avalanche (environ 50\% des bits modifiés pour un changement d'un seul bit en entrée) et explique les vulnérabilités aux collisions de MD5.
 MD5 produit un hash de 128 bits (32 caractères hexadécimaux). \textbf{Note :} MD5 est considéré comme non sécurisé pour les usages cryptographiques.
 
 \section{SHA-256 et SHA-512}
-\begin{lstlisting}[style=python,caption=SHA256.py]
-def sha256_hash():
-    word = input("Enter the word to hash with SHA256: ")
-    hash_obj = hashlib.sha256()
-    hash_obj.update(word.encode('utf-8'))
-    print(f"SHA256 Hash: {hash_obj.hexdigest()}")
+Le script \texttt{SHA256.py} propose désormais une implémentation \textbf{pédagogique complète} de l'algorithme (padding Merkle-Damgård, compression en 64 tours, fonctions $\Sigma, \gamma$) ainsi que l'utilisation de \texttt{hashlib} pour vérifier l'intégrité des résultats.
+
+\begin{lstlisting}[style=python,caption=SHA256.py - Algorithme de compression manuel]
+def sha256_compress(block: bytes, state: list) -> list:
+    """Fonction de compression sur un bloc de 512 bits."""
+    # Extension du message: 16 mots -> 64 mots
+    w = [0] * 64
+    for i in range(16):
+        w[i] = int.from_bytes(block[i*4:(i+1)*4], 'big')
+    for i in range(16, 64):
+        w[i] = (gamma1(w[i-2]) + w[i-7] + gamma0(w[i-15]) + w[i-16]) & 0xFFFFFFFF
+    
+    # ... boucle principale de compression (64 tours) ...
+    # Mise a jour de l'etat final
+    return new_state
 \end{lstlisting}
 SHA-256 produit 256 bits, SHA-512 produit 512 bits. Ces fonctions font partie de la famille SHA-2 et sont largement utilisées en production.
 
@@ -877,6 +891,98 @@ python secure_Channel/secure-channel-client.py
 Le mode debug affiche les données chiffrées/déchiffrées pour visualiser le processus de sécurisation.
 
 % ============================================================
+%  CHAPITRE 9 : INTERFACE GRAPHIQUE (GUI)
+% ============================================================
+\chapter{Interface Graphique (GUI)}
+
+\section{Présentation de l'application}
+Le projet intègre une interface graphique complète et ergonomique (\texttt{gui.py}) développée avec les bibliothèques \texttt{tkinter} et \texttt{ttk}. Nommée \textbf{CryptoSuite Complete}, cette application centralise l'ensemble des algorithmes étudiés lors des TPs 1 à 6 dans une interface unifiée.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{gui.png}
+    \caption{Interface principale de CryptoSuite Complete}
+    \label{fig:gui}
+\end{figure}
+
+\section{Architecture de l'interface}
+L'interface est structurée en trois panneaux principaux pour offrir une expérience utilisateur fluide :
+
+\begin{itemize}
+    \item \textbf{Panneau Gauche (Algorithmes) :} Un système d'onglets permet de naviguer facilement entre les différentes catégories d'algorithmes :
+    \begin{itemize}
+        \item \textit{TP1 - Classique :} César, Vigenère, Hill, OTP, Playfair, Rail Fence, et outils d'analyse fréquentielle.
+        \item \textit{TP2 - Symétrique :} RC4, DES, 3DES, AES (128/192/256), Twofish, Serpent, RC6, MARS.
+        \item \textit{TP3 - Asymétrique :} RSA, RSA-Hybride, Diffie-Hellman, ElGamal, ECC, ECDH.
+        \item \textit{TP4 - Hachage :} MD5, SHA-256, SHA-512, HMAC, effet d'avalanche.
+        \item \textit{TP5 - Signatures :} RSA-PSS, DSA, ECDSA, ElGamal.
+        \item \textit{TP6 - Applications :} Simulations de protocoles sécurisés comme Bluetooth, Wi-Fi WPA2/WPA3, Vote électronique.
+    \end{itemize}
+    
+    \item \textbf{Panneau Central (Entrée/Sortie) :} 
+    Il permet à l'utilisateur de saisir son texte, de charger un fichier, ou d'utiliser des exemples intégrés. L'utilisateur peut y définir ses propres clés et vecteurs d'initialisation (IV/Nonce), choisir le mode d'opération (Chiffrer, Déchiffrer, Signer, Vérifier), puis exécuter l'algorithme sélectionné. Les résultats sont affichés dans une zone de sortie avec des options de sauvegarde et de copie.
+    
+    \item \textbf{Panneau Droit (Gestion des Clés et Journal) :}
+    Ce panneau intègre un gestionnaire de clés interactif permettant de générer en un clic des paires de clés asymétriques complexes (RSA-2048, paramètres Diffie-Hellman, clés ECC P-256, ElGamal). Un journal d'événements (log) intégré trace toutes les actions effectuées par l'utilisateur.
+\end{itemize}
+
+\section{Apport Pédagogique}
+La \textbf{CryptoSuite Complete} constitue un puissant outil pédagogique. Chaque algorithme affiche des infobulles explicatives sur ses particularités (ex: "Attaque à clair connu" pour Hill, "Vulnérabilités WEP" pour RC4). L'interface permet ainsi de comparer instantanément la sortie et la complexité des différents chiffrements sans avoir à manipuler la ligne de commande.
+
+% ============================================================
+%  CHAPITRE 10 : QUESTIONS ET RÉPONSES
+% ============================================================
+\chapter{Questions et Réponses}
+
+\section{Limites pratiques de l'OTP (One-Time Pad)}
+\textbf{Question :} L'OTP est théoriquement parfait mais pratiquement inutilisable, citer des obstacles concrets.\\
+\textbf{Réponse :}
+Bien que l'OTP offre un secret parfait de Shannon, son utilisation en pratique se heurte à plusieurs obstacles majeurs :
+\begin{itemize}
+    \item \textbf{Taille de la clé :} La clé doit être au moins aussi longue que le message à chiffrer ($|K| = |M|$).
+    \item \textbf{Génération de l'aléa :} La clé doit être générée de manière parfaitement aléatoire (entropie maximale) et non pseudo-aléatoire.
+    \item \textbf{Distribution des clés :} Échanger de manière sécurisée une clé de la taille du message est logistiquement complexe, car cela nécessite un canal de communication tout aussi sécurisé.
+    \item \textbf{Usage unique :} La clé ne doit être utilisée qu'une seule fois. Toute réutilisation compromet immédiatement le système (two-time pad).
+\end{itemize}
+
+\section{Impact de la longueur de la clé et lien avec l'OTP}
+\textbf{Question :} En quoi la longueur de la clé impacte-t-elle la sécurité ? Que se passe-t-il quand $|K| = |M|$ ? (lien avec OTP)\\
+\textbf{Réponse :}
+La longueur de la clé détermine la taille de l'espace des clés. Plus la clé est longue, plus il y a de combinaisons possibles, rendant les attaques par force exhaustive irréalisables avec la puissance de calcul actuelle ou future.
+
+Lorsque la longueur de la clé est égale à la longueur du message ($|K| = |M|$), comme dans le cas de l'OTP (avec une clé aléatoire et à usage unique), on atteint la \textbf{sécurité parfaite}. Dans cette configuration, chaque chiffré peut correspondre à n'importe quel texte clair possible de la même longueur. L'attaquant, même avec une puissance de calcul infinie, ne peut déduire aucune information sur le message d'origine à partir du chiffré.
+
+\section{Vulnérabilité du chiffrement de Hill}
+\textbf{Question :} Pourquoi Hill est-il vulnérable à l'attaque à clair connu même pour de grandes matrices ?\\
+\textbf{Réponse :}
+Le chiffrement de Hill est basé sur l'algèbre linéaire ($C = K \cdot P \pmod{26}$).
+Dans une attaque à clair connu, l'attaquant n'a pas besoin de tester toutes les matrices possibles par force brute. S'il intercepte suffisamment de paires pour former une matrice $P$ inversible de taille $n \times n$ (où $n$ est la taille de la matrice clé $K$), il peut simplement résoudre l'équation :
+$$K = C \cdot P^{-1} \pmod{26}$$
+La résolution de ce système d'équations (inversion de matrice) se fait en temps polynomial. Ainsi, même pour de très grandes matrices, retrouver la clé $K$ est très rapide.
+
+\section{Chiffrement RSA et Padding OAEP}
+\textbf{Question :} Pourquoi RSA ne peut pas chiffrer directement un message de taille arbitraire ? Qu'est-ce que le padding OAEP apporte par rapport à RSA textbook ?\\
+\textbf{Réponse :}
+\textbf{Taille du message :} L'algorithme RSA opère dans l'anneau des entiers modulo $n$. Par définition mathématique, la valeur numérique du message $m$ doit être strictement inférieure à $n$. Chiffrer un message plus grand nécessiterait de le découper en blocs, ce qui est inefficace et vulnérable structurellement (similaire au mode ECB). C'est pourquoi RSA est généralement utilisé pour chiffrer des petites données (comme des clés AES symétriques).
+
+\textbf{Apport de l'OAEP :}
+Le "RSA textbook" (pur) est déterministe (un même message donne toujours le même chiffré) et malléable.
+L'OAEP (Optimal Asymmetric Encryption Padding) apporte deux propriétés fondamentales :
+\begin{itemize}
+    \item \textbf{Randomisation :} Il introduit un aléa cryptographique (salt) avant le chiffrement, rendant RSA probabiliste (sémantiquement sûr).
+    \item \textbf{Contre la malléabilité :} Il structure mathématiquement le message avec des fonctions de hachage, empêchant les attaques par chiffré choisi. Toute modification du chiffré sera détectée lors du déchiffrement.
+\end{itemize}
+
+\section{Sélection de Rijndael pour l'AES face à Serpent}
+\textbf{Question :} L’algorithme Serpent a obtenu la meilleure note pour la sécurité mais n'a pas été retenu. Quel critère a fait pencher la balance vers Rijndael ?\\
+\textbf{Réponse :}
+Lors du concours AES organisé par le NIST, Serpent offrait effectivement la marge de sécurité la plus élevée (notamment grâce à ses 32 rounds). Cependant, Rijndael a été sélectionné grâce à son \textbf{excellent équilibre global}, et plus particulièrement pour ses \textbf{performances} et son \textbf{agilité} :
+\begin{itemize}
+    \item \textbf{Performances :} Rijndael était significativement plus rapide en implémentation logicielle et matérielle. La complexité de Serpent impactait lourdement les débits de chiffrement.
+    \item \textbf{Agilité :} Rijndael fonctionnait extrêmement bien sur un large panel de plateformes, des processeurs performants aux puces intégrées (smartcards) disposant de très peu de mémoire (RAM) et de capacités limitées.
+\end{itemize}
+
+% ============================================================
 %  CONCLUSION
 % ============================================================
 \chapter{Conclusion}
@@ -896,13 +1002,15 @@ Cryptanalyse & Fréquentielle, IC, Kasiski & 3 fichiers \\
 \hline
 Symétrique & DES/2DES/3DES/DESX, AES-128/192/256, RC4 & 3 fichiers \\
 \hline
-Asymétrique & RSA, ElGamal, Diffie-Hellman, AES-256 & 4 fichiers \\
+Asymétrique & RSA, ElGamal, Diffie-Hellman, ECC & 4 fichiers \\
 \hline
 Hachage & MD5, SHA-256, SHA-512, HMAC & 4 fichiers \\
 \hline
 Signatures & RSA, ElGamal, DSA, ECDSA & 1 fichier \\
 \hline
 Canal sécurisé & RSA+AES-GCM Client/Serveur & 4 fichiers \\
+\hline
+Interface & GUI Complète (CryptoSuite) avec Tkinter & 1 fichier (\texttt{gui.py}) \\
 \hline
 \end{tabular}
 \caption{Résumé des algorithmes implémentés}

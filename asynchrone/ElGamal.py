@@ -236,4 +236,15 @@ def compare_key_sizes():
 
     # RSA-2048
     print("\n📌 RSA-2048 :")
-    print("   -
+    print("   - clé publique = 2048 bits")
+    print("   - clé privée = 2048 bits")
+    print("   - chiffré = 2048 bits")
+
+    # ElGamal-2048
+    print("\n📌 ElGamal-2048 :")
+    print("   - clé publique = 2048 bits")
+    print("   - clé privée = 2048 bits")
+    print("   - chiffré = 4096 bits")
+
+    # Conclusion
+    print("\n✅ RSA est plus efficace en termes de taille de clé et de chiffré.")

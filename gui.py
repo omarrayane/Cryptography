@@ -78,6 +78,19 @@ class CryptoAppComplete:
         header = tk.Frame(self.root, bg='#1e1e2e')
         header.pack(fill=tk.X, padx=20, pady=10)
         
+        # Logo USTHB
+        try:
+            from PIL import Image, ImageTk
+            if os.path.exists("usthb_logo.png"):
+                img = Image.open("usthb_logo.png")
+                # Redimensionnement du logo
+                img = img.resize((50, 50), Image.LANCZOS)
+                self.logo_img = ImageTk.PhotoImage(img)
+                logo_label = tk.Label(header, image=self.logo_img, bg='#1e1e2e')
+                logo_label.pack(side=tk.LEFT, padx=(0, 15))
+        except Exception as e:
+            self.log(f"⚠️ Impossible de charger le logo : {e}")
+            
         title = ttk.Label(header, text="🔐 CryptoSuite Complete", font=('Helvetica', 22, 'bold'))
         title.pack(side=tk.LEFT)
         
