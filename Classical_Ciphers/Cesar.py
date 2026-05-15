@@ -1,5 +1,4 @@
 def cesar_encrypt(text: str, shift: int) -> str:
-
     result = ""
     for char in text:
         if char.isalpha():
@@ -11,67 +10,51 @@ def cesar_encrypt(text: str, shift: int) -> str:
 
 
 def cesar_decrypt(text: str, shift: int) -> str:
-
     return cesar_encrypt(text, -shift)
 
 
-def brute_force_cesar(ciphertext: str, dictionary_words=None):
+def brute_force_cesar(ciphertext: str):
     """
     Attaque par force brute : teste les 26 clés possibles.
-    Si dictionary_words est fourni, identifie automatiquement le texte français valide.
     """
     results = []
-    best_match = None
-    best_score = 0
-
     for shift in range(26):
         decrypted = cesar_decrypt(ciphertext, shift)
         results.append((shift, decrypted))
-
-        # Détection automatique avec dictionnaire
-        if dictionary_words:
-            score = 0
-            decrypted_lower = decrypted.lower()
-            for word in dictionary_words:
-                if word.lower() in decrypted_lower:
-                    score += 1
-            if score > best_score:
-                best_score = score
-                best_match = (shift, decrypted)
-
-    return results, best_match
+    return results
 
 
-def calculate_ic(text):
-    """Calcule l'indice de coïncidence d'un texte."""
+def indice_coincidence(text: str) -> float:
+    """
+    Calcule l'indice de coïncidence d'un texte.
+    IC français ≈ 0.074
+    """
+    from collections import Counter
     text = ''.join(c for c in text.lower() if c.isalpha())
     n = len(text)
     if n <= 1:
         return 0
-
-    from collections import Counter
+    
     counts = Counter(text)
     ic = sum(count * (count - 1) for count in counts.values()) / (n * (n - 1))
     return ic
 
 
-def break_cesar_with_ic(ciphertext):
+def break_cesar_with_ic(ciphertext: str) -> tuple:
     """
     Déduit le décalage k en utilisant l'indice de coïncidence.
-    L'IC du français est ~0.074.
     """
     best_shift = 0
-    best_ic_diff = float('inf')
+    best_ic = 0
     french_ic = 0.074
-
+    
     for shift in range(26):
         decrypted = cesar_decrypt(ciphertext, shift)
-        ic = calculate_ic(decrypted)
-        diff = abs(ic - french_ic)
-        if diff < best_ic_diff:
-            best_ic_diff = diff
+        ic = indice_coincidence(decrypted)
+        if abs(ic - french_ic) < abs(best_ic - french_ic) or shift == 0:
+            best_ic = ic
             best_shift = shift
-
+    
     return best_shift, cesar_decrypt(ciphertext, best_shift)
 
 
@@ -88,14 +71,6 @@ def afficher_menu():
 
 
 if __name__ == "__main__":
-
-    # Dictionnaire français simple pour l'attaque
-    french_words = ["le", "la", "les", "un", "une", "de", "des", "et", "est", "dans",
-                    "pour", "par", "avec", "sans", "sur", "sous", "je", "tu", "il",
-                    "elle", "nous", "vous", "ils", "elles", "ce", "cette", "ces",
-                    "mon", "ton", "son", "notre", "votre", "leur", "qui", "que",
-                    "quoi", "dont", "ou", "mais", "donc", "car", "ni", "or"]
-
     while True:
         afficher_menu()
 
@@ -105,7 +80,6 @@ if __name__ == "__main__":
 
             if choix == 5:
                 print("Au revoir !")
-                print("-" * 50)
                 break
 
             if choix not in [1, 2, 3, 4]:
@@ -147,17 +121,12 @@ if __name__ == "__main__":
                     print(f"Texte chiffré de test : {ciphertext}")
                 else:
                     ciphertext = input("Entrez le texte chiffré à attaquer : ")
-
+                
                 print("\n[Force brute] Test des 26 clés possibles :\n")
-                results, best_match = brute_force_cesar(ciphertext, french_words)
-
+                results = brute_force_cesar(ciphertext)
+                
                 for shift, decrypted in results:
                     print(f"Clé {shift:2d} : {decrypted[:80]}{'...' if len(decrypted) > 80 else ''}")
-
-                if best_match:
-                    print(f"\n✅ Meilleur résultat détecté (clé {best_match[0]}) : {best_match[1]}")
-                else:
-                    print("\n⚠️  Aucun match certain avec le dictionnaire")
 
             elif choix == 4:
                 mode = input("Voulez-vous (t)ester avec un exemple ou (u)tiliser votre propre texte ? ").lower()
@@ -166,9 +135,11 @@ if __name__ == "__main__":
                     print(f"Texte chiffré de test : {ciphertext}")
                 else:
                     ciphertext = input("Entrez le texte chiffré à analyser : ")
-
-                print(f"\nIndice de coïncidence du cryptogramme : {calculate_ic(ciphertext):.4f}")
-
+                
+                ic = indice_coincidence(ciphertext)
+                print(f"\nIndice de coïncidence du cryptogramme : {ic:.4f}")
+                print(f"Indice de coïncidence du français : 0.074")
+                
                 shift, decrypted = break_cesar_with_ic(ciphertext)
                 print(f"Clé trouvée par IC : {shift}")
                 print(f"Texte déchiffré : {decrypted}")
