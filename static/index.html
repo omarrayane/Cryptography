@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>CryptoSuite - Algorithmes Complets TP1 à TP6</title>
+<title>CryptoSuite - TP1 à TP6 Complet</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -12,21 +12,21 @@ body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);heigh
 header{padding:14px 24px;background:rgba(11,17,32,0.95);border-bottom:1px solid #1e3a5f}
 .logo-text{font-family:'Orbitron',monospace;font-size:20px;background:linear-gradient(90deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 main{display:flex;flex:1;overflow:hidden}
-.sidebar{width:260px;background:rgba(11,17,32,0.9);border-right:1px solid #1e3a5f;overflow-y:auto}
+.sidebar{width:280px;background:rgba(11,17,32,0.9);border-right:1px solid #1e3a5f;overflow-y:auto}
 .sidebar-header{padding:10px 16px;font-size:9px;color:#3d6b8f;text-transform:uppercase}
 .algo-btn{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;background:none;border:none;color:#7fa8cc;width:100%;text-align:left;border-left:2px solid transparent}
 .algo-btn.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(0,212,255,0.08)}
 .algo-icon{width:24px}
 .center{flex:1;display:flex;flex-direction:column;padding:16px;gap:12px;overflow-y:auto}
 .panel{background:rgba(11,17,32,0.8);border:1px solid #1e3a5f;border-radius:10px}
-.panel-head{padding:10px 16px;border-bottom:1px solid #1e3a5f}
+.panel-head{padding:10px 16px;border-bottom:1px solid #1e3a5f;font-weight:bold}
 .panel-body{padding:12px 16px}
 input,textarea,select{background:rgba(15,25,41,0.8);border:1px solid #2a4f7a;border-radius:6px;padding:8px;color:var(--text);font-family:'JetBrains Mono',monospace}
-textarea{width:100%}
+textarea{width:100%;resize:vertical}
 .exec-btn{width:100%;padding:12px;border:1px solid var(--green);background:linear-gradient(135deg,rgba(0,255,136,0.1),rgba(0,212,255,0.08));color:var(--green);font-family:'Orbitron',monospace;font-weight:700;cursor:pointer}
-#output{width:100%;min-height:150px;background:rgba(4,8,15,0.9);border:1px solid #1e3a5f;border-radius:6px;color:var(--green);font-family:'JetBrains Mono',monospace;padding:14px;white-space:pre-wrap}
-.right-panel{width:300px;background:rgba(9,14,24,0.9);border-left:1px solid #1e3a5f;display:flex;flex-direction:column}
-.log-body{flex:1;overflow-y:auto;padding:8px}
+#output{width:100%;min-height:400px;background:rgba(4,8,15,0.9);border:1px solid #1e3a5f;border-radius:6px;color:var(--green);font-family:'JetBrains Mono',monospace;padding:14px;white-space:pre-wrap;overflow:auto}
+.right-panel{width:320px;background:rgba(9,14,24,0.9);border-left:1px solid #1e3a5f;display:flex;flex-direction:column}
+.log-body{flex:1;overflow-y:auto;padding:8px;height:300px}
 .log-entry{padding:6px;margin-bottom:4px;background:rgba(15,25,41,0.5);border-radius:5px;font-size:10px}
 .log-msg.success{color:var(--green)}.log-msg.error{color:var(--red)}.log-msg.info{color:var(--cyan)}
 .statusbar{padding:5px 20px;background:rgba(7,11,20,0.97);border-top:1px solid #1e3a5f;font-size:10px}
@@ -37,6 +37,9 @@ textarea{width:100%}
 .mode-btn.active{background:rgba(0,212,255,0.12);border-color:var(--cyan);color:var(--cyan)}
 .hidden{display:none}
 select{width:100%}
+.button-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.small-btn{padding:6px 12px;border:1px solid var(--cyan);background:none;color:var(--cyan);cursor:pointer;border-radius:5px}
+.small-btn:hover{background:rgba(0,212,255,0.1)}
 </style>
 </head>
 <body>
@@ -49,192 +52,131 @@ select{width:100%}
     <div class="panel-body">
       
       <!-- Zone texte principale -->
-      <div class="input-group" id="text-group">
-        <label id="text-label">📄 TEXTE / MESSAGE</label>
-        <textarea id="input-text" rows="4" placeholder="Entrez votre texte ici..."></textarea>
+      <div class="input-group">
+        <label>📄 TEXTE / MESSAGE</label>
+        <textarea id="input-text" rows="3" placeholder="Entrez votre texte ici..."></textarea>
       </div>
       
-      <!-- TP1: César - Force brute -->
+      <!-- TP1: César -->
       <div id="cesar-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="cesar-mode">
-            <option value="normal">Chiffrer/Déchiffrer normal</option>
-            <option value="bruteforce">🔓 Attaque par force brute (tester 26 clés)</option>
-            <option value="ic">📊 Attaque par indice de coïncidence</option>
-          </select>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith('cesar', 'normal', 'encrypt')">🔒 Chiffrer</button>
+          <button class="small-btn" onclick="executeWith('cesar', 'normal', 'decrypt')">🔓 Déchiffrer</button>
+          <button class="small-btn" style="border-color:var(--amber)" onclick="executeWith('cesar', 'bruteforce', '')">🔓 Force brute (26 clés)</button>
+          <button class="small-btn" style="border-color:var(--purple)" onclick="executeWith('cesar', 'ic', '')">📊 Indice coïncidence</button>
         </div>
       </div>
       
-      <!-- TP1: Vigenère - Kasiski -->
+      <!-- TP1: Vigenère -->
       <div id="vigenere-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="vigenere-mode">
-            <option value="normal">Chiffrer/Déchiffrer normal</option>
-            <option value="attack">🔓 Attaque Kasiski + IC (trouver la clé)</option>
-          </select>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith('vigenere', 'normal', 'encrypt')">🔒 Chiffrer</button>
+          <button class="small-btn" onclick="executeWith('vigenere', 'normal', 'decrypt')">🔓 Déchiffrer</button>
+          <button class="small-btn" style="border-color:var(--amber)" onclick="executeWith('vigenere', 'attack', '')">🔓 Attaque Kasiski+IC</button>
         </div>
       </div>
       
-      <!-- TP2: RC4 - Vulnérabilités WEP -->
+      <!-- TP2: RC4 -->
       <div id="rc4-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="rc4-mode">
-            <option value="normal">Chiffrer/Déchiffrer normal</option>
-            <option value="wep">⚠️ Vulnérabilité WEP (IV faibles)</option>
-            <option value="bias">📊 Biais statistique RC4</option>
-          </select>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith('rc4', 'normal', 'encrypt')">🔒 Chiffrer</button>
+          <button class="small-btn" onclick="executeWith('rc4', 'normal', 'decrypt')">🔓 Déchiffrer</button>
+          <button class="small-btn" style="border-color:var(--amber)" onclick="executeWith('rc4', 'wep', '')">⚠️ Vulnérabilité WEP</button>
         </div>
       </div>
       
-      <!-- TP2: DES - Modes ECB/CBC -->
+      <!-- TP2: DES -->
       <div id="des-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 MODE DE CHIFFREMENT</label>
-          <select id="des-mode">
-            <option value="ecb">ECB (Electronic Codebook)</option>
-            <option value="cbc">CBC (Cipher Block Chaining)</option>
-          </select>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith('des', 'ecb', 'encrypt')">🔒 DES-ECB</button>
+          <button class="small-btn" onclick="executeWith('des', 'cbc', 'encrypt')">🔒 DES-CBC</button>
+          <button class="small-btn" onclick="executeWith('des', 'ecb', 'decrypt')">🔓 Déchiffrer</button>
         </div>
       </div>
       
-      <!-- TP2: AES - Modes -->
+      <!-- TP2: AES -->
       <div id="aes-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 MODE</label>
-          <select id="aes-mode">
-            <option value="normal">Chiffrer/Déchiffrer</option>
-            <option value="avalanche">🌋 Effet avalanche (modifier 1 bit)</option>
-            <option value="nonce">⚠️ Vulnérabilité nonce-reuse CTR</option>
-            <option value="benchmark">📊 Benchmark AES-128/192/256</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label>🔑 TAILLE DE CLÉ</label>
-          <select id="aes-size">
-            <option value="128">AES-128</option>
-            <option value="192">AES-192</option>
-            <option value="256">AES-256</option>
-          </select>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith('aes128', 'normal', 'encrypt')">🔒 AES-128</button>
+          <button class="small-btn" onclick="executeWith('aes256', 'normal', 'encrypt')">🔒 AES-256</button>
+          <button class="small-btn" onclick="executeWith('aes256', 'avalanche', '')">🌋 Effet avalanche</button>
+          <button class="small-btn" style="border-color:var(--amber)" onclick="executeWith('aes256', 'nonce', '')">⚠️ Nonce-reuse</button>
         </div>
       </div>
       
       <!-- TP3: Diffie-Hellman -->
       <div id="dh-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="dh-mode">
-            <option value="normal">🔐 Échange DH normal</option>
-            <option value="mitm">⚠️ Attaque Man-in-the-Middle</option>
-            <option value="auth">✅ DH authentifié par signature</option>
-          </select>
-        </div>
         <div class="input-row">
-          <input id="dh-p" placeholder="p (ex: 23)" value="23" style="width:80px">
-          <input id="dh-g" placeholder="g (ex: 5)" value="5" style="width:80px">
-          <input id="dh-a" placeholder="a d'Alice" value="6" style="width:100px">
-          <input id="dh-b" placeholder="b de Bob" value="15" style="width:100px">
+          <input id="dh-p" placeholder="p" value="23" style="width:70px">
+          <input id="dh-g" placeholder="g" value="5" style="width:70px">
+          <input id="dh-a" placeholder="a" value="6" style="width:70px">
+          <input id="dh-b" placeholder="b" value="15" style="width:70px">
+        </div>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeDH('normal')">🔐 Échange normal</button>
+          <button class="small-btn" style="border-color:var(--amber)" onclick="executeDH('mitm')">⚠️ Attaque MITM</button>
+          <button class="small-btn" style="border-color:var(--green)" onclick="executeDH('auth')">✅ DH authentifié</button>
         </div>
       </div>
       
       <!-- TP3: RSA -->
       <div id="rsa-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="rsa-mode">
-            <option value="normal">Chiffrer/Déchiffrer</option>
-            <option value="hybrid">🔗 Chiffrement hybride RSA + AES</option>
-            <option value="sign">✍️ Signature RSA-PSS</option>
-          </select>
-        </div>
         <div class="input-row">
-          <input id="rsa-p" placeholder="p premier" value="61" style="width:100px">
-          <input id="rsa-q" placeholder="q premier" value="53" style="width:100px">
+          <input id="rsa-p" placeholder="p" value="61" style="width:80px">
+          <input id="rsa-q" placeholder="q" value="53" style="width:80px">
         </div>
-      </div>
-      
-      <!-- TP3: ElGamal -->
-      <div id="elgamal-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="elgamal-mode">
-            <option value="normal">Chiffrer/Déchiffrer</option>
-            <option value="malleable">⚠️ Démontrer la malléabilité</option>
-          </select>
-        </div>
-      </div>
-      
-      <!-- TP3: ECC -->
-      <div id="ecc-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="ecc-mode">
-            <option value="demo">📐 Points sur courbe y²=x³+7 mod 97</option>
-            <option value="ecdh">🤝 ECDH (échange de clés)</option>
-          </select>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeRSA('encrypt')">🔒 Chiffrer</button>
+          <button class="small-btn" onclick="executeRSA('decrypt')">🔓 Déchiffrer</button>
+          <button class="small-btn" onclick="executeRSA('sign')">✍️ Signer</button>
         </div>
       </div>
       
       <!-- TP4: Hachage -->
       <div id="hash-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="hash-mode">
-            <option value="simple">Calculer le hash</option>
-            <option value="avalanche">🌋 Effet avalanche (modifier 1 bit)</option>
-            <option value="benchmark">📊 Benchmark</option>
-          </select>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeHash('md5')">MD5</button>
+          <button class="small-btn" onclick="executeHash('sha256')">SHA-256</button>
+          <button class="small-btn" onclick="executeHash('sha512')">SHA-512</button>
+          <button class="small-btn" onclick="executeHash('hmac')">HMAC</button>
         </div>
       </div>
       
       <!-- TP5: Signatures -->
       <div id="sign-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="sign-mode">
-            <option value="sign">✍️ Signer le message</option>
-            <option value="verify">🔍 Vérifier une signature</option>
-          </select>
-        </div>
-        <div class="input-group" id="signature-input-group" class="hidden">
-          <label>📝 SIGNATURE À VÉRIFIER</label>
-          <textarea id="signature-input" rows="2" placeholder="Entrez la signature (hex)..."></textarea>
+        <div class="button-group">
+          <button class="small-btn" onclick="executeSign('rsa_sign')">✍️ RSA-PSS</button>
+          <button class="small-btn" onclick="executeSign('dsa')">✍️ DSA</button>
+          <button class="small-btn" onclick="executeSign('ecdsa')">✍️ ECDSA</button>
         </div>
       </div>
       
       <!-- TP6: Applications -->
       <div id="app-extra" class="hidden">
-        <div class="input-group">
-          <label>🔧 OPTIONS</label>
-          <select id="app-mode">
-            <option value="simulate">📡 Simulation</option>
-            <option value="realscan">🔍 Scan BLE réel (nécessite bleak)</option>
-          </select>
+        <div class="button-group">
+          <button class="small-btn" style="border-color:var(--cyan)" onclick="executeApp('bluetooth')">🔵 Bluetooth (complet)</button>
+          <button class="small-btn" style="border-color:var(--cyan)" onclick="executeApp('wifi')">📡 Wi-Fi WPA2</button>
+          <button class="small-btn" style="border-color:var(--green)" onclick="executeApp('vote')">🗳️ Vote électronique</button>
+          <button class="small-btn" style="border-color:var(--purple)" onclick="executeApp('homomorphic')">🧮 Vote homomorphique</button>
         </div>
       </div>
       
-      <!-- Clé générique -->
+      <!-- Clé -->
       <div id="key-group" class="input-group">
-        <label>🔑 CLÉ / PARAMÈTRE</label>
+        <label>🔑 CLÉ</label>
         <input id="key" value="3" placeholder="Clé...">
-      </div>
-      
-      <!-- Mode Chiffrer/Déchiffrer (caché pour certains algos) -->
-      <div id="mode-group" class="input-row">
-        <button class="mode-btn active" id="btn-enc" onclick="setMode('encrypt',this)">⬆ Chiffrer</button>
-        <button class="mode-btn" id="btn-dec" onclick="setMode('decrypt',this)">⬇ Déchiffrer</button>
       </div>
       
     </div>
   </div>
   
-  <button class="exec-btn" onclick="execute()">▶ EXÉCUTER</button>
+  <button class="exec-btn" id="exec-btn" onclick="execute()">▶ EXÉCUTER</button>
   
   <div class="panel">
     <div class="panel-head">📤 RÉSULTAT</div>
-    <div class="panel-body"><textarea id="output" readonly placeholder="// Résultat..."></textarea></div>
+    <div class="panel-body">
+      <textarea id="output" readonly placeholder="// Résultat..."></textarea>
+    </div>
   </div>
 </section>
 <aside class="right-panel">
@@ -247,48 +189,46 @@ select{width:100%}
 
 <script>
 let currentAlgo = 'cesar';
-let currentMode = 'encrypt';
 
 const algoConfig = {
-  // TP1 - Classique (avec attaques)
-  cesar: { hasMode: true, hasKey: true, extra: 'cesar-extra', specific: { cesarMode: 'normal' } },
-  vigenere: { hasMode: true, hasKey: true, extra: 'vigenere-extra' },
-  hill: { hasMode: true, hasKey: true, extra: null, keyPlaceholder: "Matrice 2x2 ex: 3,3,2,5" },
-  playfair: { hasMode: true, hasKey: true, extra: null },
-  railfence: { hasMode: true, hasKey: true, extra: null, keyPlaceholder: "Nombre de rails (ex: 3)" },
-  otp: { hasMode: true, hasKey: false, extra: null },
-  
-  // TP2 - Symétrique
-  rc4: { hasMode: true, hasKey: true, extra: 'rc4-extra' },
-  des: { hasMode: true, hasKey: true, extra: 'des-extra', keyPlaceholder: "Clé 8 caractères" },
-  tdes: { hasMode: true, hasKey: true, extra: null, keyPlaceholder: "Clé 24 caractères" },
-  aes128: { hasMode: true, hasKey: true, extra: 'aes-extra' },
-  aes256: { hasMode: true, hasKey: true, extra: 'aes-extra' },
-  twofish: { hasMode: true, hasKey: true, extra: null },
-  serpent: { hasMode: true, hasKey: true, extra: null },
-  
-  // TP3 - Asymétrique (pas de mode chiffrer/déchiffrer standard)
-  rsa: { hasMode: false, hasKey: false, extra: 'rsa-extra' },
-  dh: { hasMode: false, hasKey: false, extra: 'dh-extra' },
-  elgamal: { hasMode: false, hasKey: false, extra: 'elgamal-extra' },
-  ecc: { hasMode: false, hasKey: false, extra: 'ecc-extra' },
-  
-  // TP4 - Hachage (pas de mode)
-  md5: { hasMode: false, hasKey: false, extra: 'hash-extra' },
-  sha256: { hasMode: false, hasKey: false, extra: 'hash-extra' },
-  sha512: { hasMode: false, hasKey: false, extra: 'hash-extra' },
-  hmac: { hasMode: false, hasKey: true, extra: 'hash-extra', keyPlaceholder: "Clé HMAC" },
-  
-  // TP5 - Signatures
-  rsa_sign: { hasMode: false, hasKey: false, extra: 'sign-extra' },
-  dsa: { hasMode: false, hasKey: false, extra: 'sign-extra' },
-  ecdsa: { hasMode: false, hasKey: false, extra: 'sign-extra' },
-  
-  // TP6 - Applications
-  bluetooth: { hasMode: false, hasKey: false, extra: 'app-extra' },
-  wifi: { hasMode: false, hasKey: false, extra: 'app-extra' },
-  vote: { hasMode: false, hasKey: false, extra: 'app-extra' },
-  homomorphic: { hasMode: false, hasKey: false, extra: 'app-extra' }
+  cesar: { extra: 'cesar-extra', hasKey: true },
+  vigenere: { extra: 'vigenere-extra', hasKey: true },
+  hill: { extra: null, hasKey: true },
+  playfair: { extra: null, hasKey: true },
+  railfence: { extra: null, hasKey: true },
+  otp: { extra: null, hasKey: false },
+  rc4: { extra: 'rc4-extra', hasKey: true },
+  des: { extra: 'des-extra', hasKey: true },
+  tdes: { extra: null, hasKey: true },
+  aes128: { extra: 'aes-extra', hasKey: true },
+  aes256: { extra: 'aes-extra', hasKey: true },
+  twofish: { extra: null, hasKey: true },
+  serpent: { extra: null, hasKey: true },
+  rsa: { extra: 'rsa-extra', hasKey: false },
+  dh: { extra: 'dh-extra', hasKey: false },
+  elgamal: { extra: null, hasKey: false },
+  ecc: { extra: null, hasKey: false },
+  md5: { extra: 'hash-extra', hasKey: false },
+  sha256: { extra: 'hash-extra', hasKey: false },
+  sha512: { extra: 'hash-extra', hasKey: false },
+  hmac: { extra: 'hash-extra', hasKey: true },
+  rsa_sign: { extra: 'sign-extra', hasKey: false },
+  dsa: { extra: 'sign-extra', hasKey: false },
+  ecdsa: { extra: 'sign-extra', hasKey: false },
+  bluetooth: { extra: 'app-extra', hasKey: false },
+  wifi: { extra: 'app-extra', hasKey: false },
+  vote: { extra: 'app-extra', hasKey: false },
+  homomorphic: { extra: 'app-extra', hasKey: false }
+};
+
+const algoNames = {
+  cesar:'César', vigenere:'Vigenère', hill:'Hill', playfair:'Playfair',
+  railfence:'Rail Fence', otp:'OTP', rc4:'RC4', des:'DES', tdes:'3DES',
+  aes128:'AES-128', aes256:'AES-256', twofish:'Twofish', serpent:'Serpent',
+  rsa:'RSA', dh:'Diffie-Hellman', elgamal:'ElGamal', ecc:'ECC',
+  md5:'MD5', sha256:'SHA-256', sha512:'SHA-512', hmac:'HMAC',
+  rsa_sign:'RSA-PSS', dsa:'DSA', ecdsa:'ECDSA',
+  bluetooth:'Bluetooth', wifi:'Wi-Fi', vote:'Vote', homomorphic:'Homomorphique'
 };
 
 const algoCategories = {
@@ -298,16 +238,6 @@ const algoCategories = {
   'TP4 · Hachage': ['md5','sha256','sha512','hmac'],
   'TP5 · Signatures': ['rsa_sign','dsa','ecdsa'],
   'TP6 · Applications': ['bluetooth','wifi','vote','homomorphic']
-};
-
-const algoNames = {
-  cesar:'César + attaques', vigenere:'Vigenère + Kasiski', hill:'Hill 2x2', playfair:'Playfair',
-  railfence:'Rail Fence', otp:'OTP (Vernam)', rc4:'RC4 + vulnérabilités', des:'DES (ECB/CBC)',
-  tdes:'3DES', aes128:'AES-128', aes256:'AES-256', twofish:'Twofish', serpent:'Serpent',
-  rsa:'RSA (chiffrement/signature)', dh:'Diffie-Hellman + MITM', elgamal:'ElGamal + malléabilité', ecc:'ECC P-256',
-  md5:'MD5', sha256:'SHA-256', sha512:'SHA-512', hmac:'HMAC',
-  rsa_sign:'RSA-PSS Signature', dsa:'DSA Signature', ecdsa:'ECDSA Signature',
-  bluetooth:'Bluetooth LE', wifi:'Wi-Fi WPA2/WPA3', vote:'Vote électronique', homomorphic:'Vote homomorphique'
 };
 
 function buildSidebar() {
@@ -332,60 +262,29 @@ function setAlgo(algo, btn) {
   document.querySelectorAll('.algo-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   
-  const config = algoConfig[algo];
-  
-  // Cacher tous les extras
   document.querySelectorAll('[id$="-extra"]').forEach(el => el.classList.add('hidden'));
+  const config = algoConfig[algo];
+  if(config && config.extra) document.getElementById(config.extra).classList.remove('hidden');
   
-  // Afficher l'extra correspondant
-  if(config.extra) document.getElementById(config.extra).classList.remove('hidden');
-  
-  // Gérer l'affichage du groupe de mode
-  const modeGroup = document.getElementById('mode-group');
-  if(config.hasMode) modeGroup.classList.remove('hidden');
-  else modeGroup.classList.add('hidden');
-  
-  // Gérer l'affichage de la clé
   const keyGroup = document.getElementById('key-group');
-  if(config.hasKey) {
-    keyGroup.classList.remove('hidden');
-    const keyInput = document.getElementById('key');
-    if(config.keyPlaceholder) keyInput.placeholder = config.keyPlaceholder;
-    else keyInput.placeholder = "Entrez la clé...";
-  } else {
-    keyGroup.classList.add('hidden');
-  }
-  
-  // Cacher la zone signature si nécessaire
-  document.getElementById('signature-input-group')?.classList.add('hidden');
+  if(config && config.hasKey) keyGroup.classList.remove('hidden');
+  else keyGroup.classList.add('hidden');
   
   log(`Algorithme: ${algoNames[algo]}`, 'info');
 }
 
-function setMode(mode, btn) {
-  currentMode = mode;
-  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
 async function execute() {
   const text = document.getElementById('input-text').value.trim();
-  let key = document.getElementById('key').value;
-  
-  // Récupérer les options
-  let cesarMode = document.getElementById('cesar-mode')?.value || 'normal';
-  let vigenereMode = document.getElementById('vigenere-mode')?.value || 'normal';
-  let rc4Mode = document.getElementById('rc4-mode')?.value || 'normal';
-  let desMode = document.getElementById('des-mode')?.value || 'ecb';
-  let aesMode = document.getElementById('aes-mode')?.value || 'normal';
-  let aesSize = document.getElementById('aes-size')?.value || '256';
-  let dhMode = document.getElementById('dh-mode')?.value || 'normal';
-  let rsaMode = document.getElementById('rsa-mode')?.value || 'normal';
-  let elgamalMode = document.getElementById('elgamal-mode')?.value || 'normal';
-  let eccMode = document.getElementById('ecc-mode')?.value || 'demo';
-  let hashMode = document.getElementById('hash-mode')?.value || 'simple';
-  let signMode = document.getElementById('sign-mode')?.value || 'sign';
-  let appMode = document.getElementById('app-mode')?.value || 'simulate';
+  if(!text && !['dh','bluetooth','wifi','vote','homomorphic','ecc','elgamal'].includes(currentAlgo)){
+    log('⚠️ Entrez un texte!', 'error');
+    return;
+  }
+  executeWith(currentAlgo, 'normal', 'encrypt');
+}
+
+async function executeWith(algo, option, mode) {
+  const text = document.getElementById('input-text').value.trim();
+  const key = document.getElementById('key').value;
   
   let dh_p = document.getElementById('dh-p')?.value || '23';
   let dh_g = document.getElementById('dh-g')?.value || '5';
@@ -394,16 +293,20 @@ async function execute() {
   let rsa_p = document.getElementById('rsa-p')?.value || '61';
   let rsa_q = document.getElementById('rsa-q')?.value || '53';
   
-  // Construire la payload
   let payload = {
-    algo: currentAlgo,
+    algo: algo,
     text: text,
     key: key,
-    mode: currentMode,
-    cesarMode, vigenereMode, rc4Mode, desMode, aesMode, aesSize,
-    dhMode, dh_p, dh_g, dh_a, dh_b,
-    rsaMode, rsa_p, rsa_q,
-    elgamalMode, eccMode, hashMode, signMode, appMode
+    mode: mode,
+    cesarMode: option === 'bruteforce' ? 'bruteforce' : (option === 'ic' ? 'ic' : 'normal'),
+    vigenereMode: option === 'attack' ? 'attack' : 'normal',
+    rc4Mode: option === 'wep' ? 'wep' : 'normal',
+    desMode: option === 'cbc' ? 'cbc' : 'ecb',
+    aesMode: option === 'avalanche' ? 'avalanche' : (option === 'nonce' ? 'nonce' : 'normal'),
+    dhMode: option,
+    rsaMode: mode === 'sign' ? 'sign' : 'normal',
+    dh_p: dh_p, dh_g: dh_g, dh_a: dh_a, dh_b: dh_b,
+    rsa_p: rsa_p, rsa_q: rsa_q
   };
   
   document.getElementById('status-msg').innerHTML = '⏳ Traitement...';
@@ -419,7 +322,7 @@ async function execute() {
     const data = await response.json();
     if(data.success){
       document.getElementById('output').value = data.result;
-      log(`${algoNames[currentAlgo]} terminé ✓`, 'success');
+      log(`${algoNames[algo]} terminé ✓`, 'success');
     } else {
       document.getElementById('output').value = `❌ Erreur: ${data.error}`;
       log(`Erreur: ${data.error}`, 'error');
@@ -433,6 +336,26 @@ async function execute() {
   btn.disabled = false;
 }
 
+async function executeDH(option) {
+  await executeWith('dh', option, '');
+}
+
+async function executeRSA(mode) {
+  await executeWith('rsa', mode, mode);
+}
+
+async function executeHash(algo) {
+  await executeWith(algo, 'normal', '');
+}
+
+async function executeSign(algo) {
+  await executeWith(algo, 'normal', '');
+}
+
+async function executeApp(algo) {
+  await executeWith(algo, 'normal', '');
+}
+
 function log(msg, type=''){
   const logBody = document.getElementById('log-body');
   const div = document.createElement('div');
@@ -444,8 +367,8 @@ function log(msg, type=''){
 function clearLog(){ document.getElementById('log-body').innerHTML = ''; }
 
 buildSidebar();
-log('✅ CryptoSuite - Tous les algorithmes TP1 à TP6', 'success');
-log('📡 Backend sur http://localhost:5000', 'info');
+log('✅ CryptoSuite - Tous les TP1 à TP6', 'success');
+log('📡 Sélectionnez un algorithme et utilisez les boutons spécifiques', 'info');
 </script>
 </body>
 </html>
