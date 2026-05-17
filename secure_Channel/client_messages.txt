@@ -11,3 +11,4 @@ ENVOYÉ au serveur: connection
 ENVOYÉ au serveur: pwd
 REÇU du serveur: hello
 REÇU du serveur: yaw yaw
+ENVOYÉ au serveur: test

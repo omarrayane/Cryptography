@@ -11,3 +11,4 @@ REÇU du client: connection
 REÇU du client: pwd
 ENVOYÉ au client: hello
 ENVOYÉ au client: yaw yaw
+REÇU du client: test
