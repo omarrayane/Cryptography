@@ -160,6 +160,40 @@ select{width:100%}
           <button class="small-btn" style="border-color:var(--purple)" onclick="executeApp('homomorphic')">🧮 Vote homomorphique</button>
         </div>
       </div>
+
+      <!-- Hill, Playfair, Railfence, TDES -->
+      <div id="generic-extra" class="hidden">
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith(currentAlgo, 'normal', 'encrypt')">🔒 Chiffrer</button>
+          <button class="small-btn" onclick="executeWith(currentAlgo, 'normal', 'decrypt')">🔓 Déchiffrer</button>
+        </div>
+      </div>
+      
+      <!-- OTP -->
+      <div id="otp-extra" class="hidden">
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith('otp', 'normal', 'encrypt')">🔒 Chiffrer</button>
+          <button class="small-btn" onclick="executeWith('otp', 'normal', 'decrypt')">🔓 Déchiffrer (Format: msg:clé)</button>
+        </div>
+      </div>
+
+      <!-- ElGamal -->
+      <div id="elgamal-extra" class="hidden">
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith('elgamal', 'keys', 'keys')">🔑 Générer Clés</button>
+          <button class="small-btn" onclick="executeWith('elgamal', 'encrypt', 'encrypt')">🔒 Chiffrer</button>
+          <button class="small-btn" onclick="executeWith('elgamal', 'decrypt', 'decrypt')">🔓 Déchiffrer</button>
+          <button class="small-btn" style="border-color:var(--amber)" onclick="executeWith('elgamal', 'malleable', 'malleable')">⚠️ Malléabilité</button>
+        </div>
+      </div>
+
+      <!-- ECC -->
+      <div id="ecc-extra" class="hidden">
+        <div class="button-group">
+          <button class="small-btn" onclick="executeWith('ecc', 'normal', 'normal')">🔐 ECDH P-256</button>
+          <button class="small-btn" onclick="executeWith('ecc', 'points', 'points')">🧮 Calcul Points</button>
+        </div>
+      </div>
       
       <!-- Clé -->
       <div id="key-group" class="input-group">
@@ -193,21 +227,21 @@ let currentAlgo = 'cesar';
 const algoConfig = {
   cesar: { extra: 'cesar-extra', hasKey: true },
   vigenere: { extra: 'vigenere-extra', hasKey: true },
-  hill: { extra: null, hasKey: true },
-  playfair: { extra: null, hasKey: true },
-  railfence: { extra: null, hasKey: true },
-  otp: { extra: null, hasKey: false },
+  hill: { extra: 'generic-extra', hasKey: true },
+  playfair: { extra: 'generic-extra', hasKey: true },
+  railfence: { extra: 'generic-extra', hasKey: true },
+  otp: { extra: 'otp-extra', hasKey: false },
   rc4: { extra: 'rc4-extra', hasKey: true },
   des: { extra: 'des-extra', hasKey: true },
-  tdes: { extra: null, hasKey: true },
+  tdes: { extra: 'generic-extra', hasKey: true },
   aes128: { extra: 'aes-extra', hasKey: true },
   aes256: { extra: 'aes-extra', hasKey: true },
-  twofish: { extra: null, hasKey: true },
-  serpent: { extra: null, hasKey: true },
+  twofish: { extra: 'generic-extra', hasKey: true },
+  serpent: { extra: 'generic-extra', hasKey: true },
   rsa: { extra: 'rsa-extra', hasKey: false },
   dh: { extra: 'dh-extra', hasKey: false },
-  elgamal: { extra: null, hasKey: false },
-  ecc: { extra: null, hasKey: false },
+  elgamal: { extra: 'elgamal-extra', hasKey: false },
+  ecc: { extra: 'ecc-extra', hasKey: false },
   md5: { extra: 'hash-extra', hasKey: false },
   sha256: { extra: 'hash-extra', hasKey: false },
   sha512: { extra: 'hash-extra', hasKey: false },
@@ -286,27 +320,32 @@ async function executeWith(algo, option, mode) {
   const text = document.getElementById('input-text').value.trim();
   const key = document.getElementById('key').value;
   
-  let dh_p = document.getElementById('dh-p')?.value || '23';
-  let dh_g = document.getElementById('dh-g')?.value || '5';
-  let dh_a = document.getElementById('dh-a')?.value || '6';
-  let dh_b = document.getElementById('dh-b')?.value || '15';
-  let rsa_p = document.getElementById('rsa-p')?.value || '61';
-  let rsa_q = document.getElementById('rsa-q')?.value || '53';
+  // Déterminer l'action: si option n'est pas 'normal' ni vide, c'est l'action
+  // sinon c'est le mode (encrypt/decrypt/sign), sinon défaut 'encrypt'
+  let action = 'encrypt';
+  if(option && option !== 'normal') {
+    action = option;
+  } else if(mode && mode !== '') {
+    action = mode;
+  }
   
   let payload = {
     algo: algo,
+    action: action,
     text: text,
     key: key,
-    mode: mode,
-    cesarMode: option === 'bruteforce' ? 'bruteforce' : (option === 'ic' ? 'ic' : 'normal'),
-    vigenereMode: option === 'attack' ? 'attack' : 'normal',
-    rc4Mode: option === 'wep' ? 'wep' : 'normal',
-    desMode: option === 'cbc' ? 'cbc' : 'ecb',
-    aesMode: option === 'avalanche' ? 'avalanche' : (option === 'nonce' ? 'nonce' : 'normal'),
-    dhMode: option,
-    rsaMode: mode === 'sign' ? 'sign' : 'normal',
-    dh_p: dh_p, dh_g: dh_g, dh_a: dh_a, dh_b: dh_b,
-    rsa_p: rsa_p, rsa_q: rsa_q
+    shift: key,
+    p: document.getElementById('dh-p')?.value || document.getElementById('rsa-p')?.value || '',
+    q: document.getElementById('rsa-q')?.value || '',
+    g: document.getElementById('dh-g')?.value || '',
+    a: document.getElementById('dh-a')?.value || '',
+    b: document.getElementById('dh-b')?.value || '',
+    rsa_p: document.getElementById('rsa-p')?.value || '61',
+    rsa_q: document.getElementById('rsa-q')?.value || '53',
+    dh_p: document.getElementById('dh-p')?.value || '23',
+    dh_g: document.getElementById('dh-g')?.value || '5',
+    dh_a: document.getElementById('dh-a')?.value || '6',
+    dh_b: document.getElementById('dh-b')?.value || '15'
   };
   
   document.getElementById('status-msg').innerHTML = '⏳ Traitement...';
@@ -314,7 +353,7 @@ async function executeWith(algo, option, mode) {
   btn.disabled = true;
   
   try {
-    const response = await fetch('http://localhost:5000/api/execute', {
+    const response = await fetch('/api/execute', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
@@ -322,7 +361,7 @@ async function executeWith(algo, option, mode) {
     const data = await response.json();
     if(data.success){
       document.getElementById('output').value = data.result;
-      log(`${algoNames[algo]} terminé ✓`, 'success');
+      log(`${algoNames[algo] || algo} terminé ✓`, 'success');
     } else {
       document.getElementById('output').value = `❌ Erreur: ${data.error}`;
       log(`Erreur: ${data.error}`, 'error');
@@ -345,15 +384,15 @@ async function executeRSA(mode) {
 }
 
 async function executeHash(algo) {
-  await executeWith(algo, 'normal', '');
+  await executeWith(algo, 'encrypt', 'encrypt');
 }
 
 async function executeSign(algo) {
-  await executeWith(algo, 'normal', '');
+  await executeWith(algo, 'sign', 'sign');
 }
 
 async function executeApp(algo) {
-  await executeWith(algo, 'normal', '');
+  await executeWith(algo, 'encrypt', 'encrypt');
 }
 
 function log(msg, type=''){
