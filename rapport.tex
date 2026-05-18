@@ -896,38 +896,38 @@ Le mode debug affiche les données chiffrées/déchiffrées pour visualiser le p
 \chapter{Interface Graphique (GUI)}
 
 \section{Présentation de l'application}
-Le projet intègre une interface graphique complète et ergonomique (\texttt{gui.py}) développée avec les bibliothèques \texttt{tkinter} et \texttt{ttk}. Nommée \textbf{CryptoSuite Complete}, cette application centralise l'ensemble des algorithmes étudiés lors des TPs 1 à 6 dans une interface unifiée.
+Le projet intègre désormais une interface graphique web complète et ergonomique, accessible via un navigateur. Développée avec le framework \textbf{Flask} (Python) pour le backend (\texttt{backend\_server.py}) et des technologies web standards (HTML, CSS, JavaScript) pour le frontend (\texttt{static/index.html}), cette application, nommée \textbf{CryptoSuite Complete}, centralise l'ensemble des algorithmes étudiés lors des TPs 1 à 6 dans une interface unifiée et moderne.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.85\textwidth]{gui.png}
-    \caption{Interface principale de CryptoSuite Complete}
+    \caption{Interface web principale de CryptoSuite Complete}
     \label{fig:gui}
 \end{figure}
 
 \section{Architecture de l'interface}
-L'interface est structurée en trois panneaux principaux pour offrir une expérience utilisateur fluide :
+L'interface est structurée de manière responsive en trois panneaux principaux pour offrir une expérience utilisateur fluide :
 
 \begin{itemize}
-    \item \textbf{Panneau Gauche (Algorithmes) :} Un système d'onglets permet de naviguer facilement entre les différentes catégories d'algorithmes :
+    \item \textbf{Panneau Gauche (Barre latérale - Algorithmes) :} Ce panneau de navigation permet de basculer facilement entre les différentes catégories d'algorithmes regroupées par TP :
     \begin{itemize}
-        \item \textit{TP1 - Classique :} César, Vigenère, Hill, OTP, Playfair, Rail Fence, et outils d'analyse fréquentielle.
-        \item \textit{TP2 - Symétrique :} RC4, DES, 3DES, AES (128/192/256), Twofish, Serpent, RC6, MARS.
-        \item \textit{TP3 - Asymétrique :} RSA, RSA-Hybride, Diffie-Hellman, ElGamal, ECC, ECDH.
-        \item \textit{TP4 - Hachage :} MD5, SHA-256, SHA-512, HMAC, effet d'avalanche.
-        \item \textit{TP5 - Signatures :} RSA-PSS, DSA, ECDSA, ElGamal.
-        \item \textit{TP6 - Applications :} Simulations de protocoles sécurisés comme Bluetooth, Wi-Fi WPA2/WPA3, Vote électronique.
+        \item \textit{TP1 - Classique :} César, Vigenère, Hill, OTP, Playfair, Rail Fence.
+        \item \textit{TP2 - Symétrique :} RC4, DES, 3DES, AES (128/256), Twofish, Serpent.
+        \item \textit{TP3 - Asymétrique :} RSA, Diffie-Hellman, ElGamal, ECC.
+        \item \textit{TP4 - Hachage :} MD5, SHA-256, SHA-512, HMAC.
+        \item \textit{TP5 - Signatures :} RSA-PSS, DSA, ECDSA.
+        \item \textit{TP6 - Applications :} Simulations Bluetooth, Wi-Fi WPA2, Vote électronique et homomorphique.
     \end{itemize}
     
-    \item \textbf{Panneau Central (Entrée/Sortie) :} 
-    Il permet à l'utilisateur de saisir son texte, de charger un fichier, ou d'utiliser des exemples intégrés. L'utilisateur peut y définir ses propres clés et vecteurs d'initialisation (IV/Nonce), choisir le mode d'opération (Chiffrer, Déchiffrer, Signer, Vérifier), puis exécuter l'algorithme sélectionné. Les résultats sont affichés dans une zone de sortie avec des options de sauvegarde et de copie.
+    \item \textbf{Panneau Central (Configuration et Entrée/Sortie) :} 
+    Ce panneau principal permet à l'utilisateur de saisir son texte et de configurer dynamiquement les paramètres spécifiques à l'algorithme sélectionné (ex: champs pour $p$ et $q$ dans RSA ou $p$, $g$, $a$, $b$ dans Diffie-Hellman). Les boutons d'exécution contextuels s'adaptent automatiquement selon l'algorithme (Chiffrer, Déchiffrer, Force Brute, Signer, etc.). Les résultats cryptographiques sont affichés de manière détaillée dans la zone de sortie.
     
-    \item \textbf{Panneau Droit (Gestion des Clés et Journal) :}
-    Ce panneau intègre un gestionnaire de clés interactif permettant de générer en un clic des paires de clés asymétriques complexes (RSA-2048, paramètres Diffie-Hellman, clés ECC P-256, ElGamal). Un journal d'événements (log) intégré trace toutes les actions effectuées par l'utilisateur.
+    \item \textbf{Panneau Droit (Journal des événements) :}
+    Ce panneau affiche un journal chronologique (log) en temps réel retraçant toutes les actions effectuées par l'utilisateur (algorithme lancé, succès, erreurs), offrant une traçabilité complète de la session.
 \end{itemize}
 
 \section{Apport Pédagogique}
-La \textbf{CryptoSuite Complete} constitue un puissant outil pédagogique. Chaque algorithme affiche des infobulles explicatives sur ses particularités (ex: "Attaque à clair connu" pour Hill, "Vulnérabilités WEP" pour RC4). L'interface permet ainsi de comparer instantanément la sortie et la complexité des différents chiffrements sans avoir à manipuler la ligne de commande.
+La \textbf{CryptoSuite Complete} constitue un puissant outil d'expérimentation. Chaque algorithme propose des boutons spécifiques pour explorer ses particularités (ex: "Force brute" pour César, "Attaque Kasiski" pour Vigenère, "Vulnérabilités WEP" pour RC4). L'interface web permet de comparer instantanément les résultats et d'analyser le comportement des différents chiffrements de façon interactive, via une API REST locale fluide.
 
 % ============================================================
 %  CHAPITRE 10 : QUESTIONS ET RÉPONSES
@@ -1009,8 +1009,7 @@ Hachage & MD5, SHA-256, SHA-512, HMAC & 4 fichiers \\
 Signatures & RSA, ElGamal, DSA, ECDSA & 1 fichier \\
 \hline
 Canal sécurisé & RSA+AES-GCM Client/Serveur & 4 fichiers \\
-\hline
-Interface & GUI Complète (CryptoSuite) avec Tkinter & 1 fichier (\texttt{gui.py}) \\
+Interface & GUI Web Complète (Flask) & \texttt{backend\_server.py}, \texttt{static/index.html} \\
 \hline
 \end{tabular}
 \caption{Résumé des algorithmes implémentés}
