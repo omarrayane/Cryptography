@@ -1,5 +1,4 @@
 # DES.py - Utilisation de pycryptodome
-# ============================================================
 
 from Crypto.Cipher import DES, DES3
 from Crypto.Util.Padding import pad, unpad
@@ -8,7 +7,6 @@ import os
 import time
 from PIL import Image
 import numpy as np
-
 
 def des_ecb_encrypt(data, key):
     """DES mode ECB."""
@@ -21,7 +19,6 @@ def des_ecb_encrypt(data, key):
     padded = pad(data, DES.block_size)
     return cipher.encrypt(padded)
 
-
 def des_ecb_decrypt(ciphertext, key):
     """DES mode ECB."""
     if isinstance(key, str):
@@ -30,7 +27,6 @@ def des_ecb_decrypt(ciphertext, key):
     cipher = DES.new(key, DES.MODE_ECB)
     decrypted = cipher.decrypt(ciphertext)
     return unpad(decrypted, DES.block_size).decode('utf-8')
-
 
 def des_cbc_encrypt(data, key, iv=None):
     """DES mode CBC avec IV aléatoire."""
@@ -46,7 +42,6 @@ def des_cbc_encrypt(data, key, iv=None):
     ciphertext = cipher.encrypt(padded)
     return iv + ciphertext
 
-
 def des_cbc_decrypt(ciphertext, key):
     """DES mode CBC."""
     if isinstance(key, str):
@@ -57,7 +52,6 @@ def des_cbc_decrypt(ciphertext, key):
     cipher = DES.new(key, DES.MODE_CBC, iv=iv)
     decrypted = cipher.decrypt(actual_ciphertext)
     return unpad(decrypted, DES.block_size).decode('utf-8')
-
 
 def triple_des_cbc_encrypt(data, key):
     """Triple DES mode CBC."""
@@ -72,7 +66,6 @@ def triple_des_cbc_encrypt(data, key):
     ciphertext = cipher.encrypt(padded)
     return iv + ciphertext
 
-
 def triple_des_cbc_decrypt(ciphertext, key):
     """Triple DES mode CBC."""
     if isinstance(key, str):
@@ -84,16 +77,13 @@ def triple_des_cbc_decrypt(ciphertext, key):
     decrypted = cipher.decrypt(actual_ciphertext)
     return unpad(decrypted, DES3.block_size).decode('utf-8')
 
-
 def des_encrypt(plaintext, key):
     """Interface simple pour DES encryption."""
     return des_cbc_encrypt(plaintext, key)
 
-
 def des_decrypt(ciphertext, key):
     """Interface simple pour DES decryption."""
     return des_cbc_decrypt(ciphertext, key)
-
 
 if __name__ == "__main__":
     print("DES module loaded successfully")

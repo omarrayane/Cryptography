@@ -1,15 +1,11 @@
-# secure_udp.py - Communication UDP sécurisée
-# ============================================================
 
 import socket
 import threading
 import os
 from crypto_utils import CryptoTools, create_secure_packet, parse_secure_packet
 
-
 UDP_PORT = 65433
 BUFFER_SIZE = 65535  # Max UDP packet size
-
 
 class SecureUDPServer:
     """Serveur UDP sécurisé."""
@@ -63,7 +59,6 @@ class SecureUDPServer:
         self.running = False
         if self.sock:
             self.sock.close()
-
 
 class SecureUDPClient:
     """Client UDP sécurisé."""
@@ -119,7 +114,6 @@ class SecureUDPClient:
                 print(f"Erreur réception: {e}")
                 break
 
-
 def menu():
     print("\n" + "=" * 50)
     print("  COMMUNICATION SÉCURISÉE (TP6)")
@@ -130,7 +124,6 @@ def menu():
     print("4. Démarrer le client UDP")
     print("5. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     while True:

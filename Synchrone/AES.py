@@ -1,5 +1,3 @@
-# AES.PY - Utilisation de pycryptodome
-# ============================================================
 
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
@@ -9,7 +7,6 @@ import time
 from PIL import Image
 import numpy as np
 from collections import Counter
-
 
 def aes_encrypt_ecb(data, key):
     """AES mode ECB."""
@@ -22,7 +19,6 @@ def aes_encrypt_ecb(data, key):
     padded = pad(data, AES.block_size)
     return cipher.encrypt(padded)
 
-
 def aes_decrypt_ecb(ciphertext, key):
     """AES mode ECB."""
     if isinstance(key, str):
@@ -31,7 +27,6 @@ def aes_decrypt_ecb(ciphertext, key):
     cipher = AES.new(key, AES.MODE_ECB)
     decrypted = cipher.decrypt(ciphertext)
     return unpad(decrypted, AES.block_size).decode('utf-8')
-
 
 def aes_encrypt_cbc(data, key, iv=None):
     """AES mode CBC."""
@@ -47,7 +42,6 @@ def aes_encrypt_cbc(data, key, iv=None):
     ciphertext = cipher.encrypt(padded)
     return iv + ciphertext
 
-
 def aes_decrypt_cbc(ciphertext, key):
     """AES mode CBC."""
     if isinstance(key, str):
@@ -58,7 +52,6 @@ def aes_decrypt_cbc(ciphertext, key):
     cipher = AES.new(key, AES.MODE_CBC, iv=iv)
     decrypted = cipher.decrypt(actual_ciphertext)
     return unpad(decrypted, AES.block_size).decode('utf-8')
-
 
 def aes_encrypt_ctr(data, key, nonce=None):
     """AES mode CTR."""
@@ -73,7 +66,6 @@ def aes_encrypt_ctr(data, key, nonce=None):
     ciphertext = cipher.encrypt(data)
     return nonce + ciphertext
 
-
 def aes_decrypt_ctr(ciphertext, key):
     """AES mode CTR."""
     if isinstance(key, str):
@@ -83,7 +75,6 @@ def aes_decrypt_ctr(ciphertext, key):
     actual_ciphertext = ciphertext[8:]
     cipher = AES.new(key, AES.MODE_CTR, nonce=nonce)
     return cipher.decrypt(actual_ciphertext).decode('utf-8')
-
 
 def avalanche_effect_cbc():
     """Modifie 1 bit du IV et observe la propagation."""
@@ -95,13 +86,11 @@ def avalanche_effect_cbc():
     key = get_random_bytes(32)  # AES-256
     plaintext = b"Message super important a chiffrer avec AES-CBC"
 
-    # Chiffrer avec IV original
     iv1 = get_random_bytes(16)
     cipher1 = AES.new(key, AES.MODE_CBC, iv=iv1)
     padded = pad(plaintext, AES.block_size)
     encrypted1 = cipher1.encrypt(padded)
 
-    # Chiffrer avec IV modifié (1 bit de différence)
     iv2 = bytearray(iv1)
     iv2[0] ^= 0x01  # Modifier 1 bit
     cipher2 = AES.new(key, AES.MODE_CBC, iv=bytes(iv2))
@@ -123,7 +112,6 @@ def avalanche_effect_cbc():
 
     print("\n✅ Notez que la modification d'1 bit du IV affecte TOUS les blocs!")
 
-
 def nonce_reuse_ctr_attack():
     """
     Vulnérabilité nonce-reuse en mode CTR.
@@ -142,14 +130,12 @@ def nonce_reuse_ctr_attack():
     print(f"Message 1 : {message1}")
     print(f"Message 2 : {message2}")
 
-    # Chiffrer avec le MÊME nonce (vulnérabilité)
     cipher1 = AES.new(key, AES.MODE_CTR, nonce=nonce)
     cipher2 = AES.new(key, AES.MODE_CTR, nonce=nonce)
 
     encrypted1 = cipher1.encrypt(message1.encode())
     encrypted2 = cipher2.encrypt(message2.encode())
 
-    # Attaque : C1 XOR C2 = M1 XOR M2
     xor_result = bytes(e1 ^ e2 for e1, e2 in zip(encrypted1, encrypted2))
 
     print(f"\nC1 XOR C2 = {xor_result.hex()[:50]}...")
@@ -171,7 +157,6 @@ def nonce_reuse_ctr_attack():
                 print(f"  Position {pos}: '{recovered_str}'")
         except:
             pass
-
 
 def benchmark_aes_variants(size_mb=10):
     """Compare AES-128, AES-192, AES-256."""
@@ -207,7 +192,6 @@ def benchmark_aes_variants(size_mb=10):
         print(f"AES-{bits:<3} {metrics['encrypt']:<18.4f} {metrics['decrypt']:<18.4f} {metrics['throughput']:<15.2f}")
 
     print("\n✅ AES-128 est le plus rapide, AES-256 offre plus de sécurité")
-
 
 def compare_ecb_cbc_ctr_image():
     """Chiffre une image avec différents modes."""
@@ -259,7 +243,6 @@ def compare_ecb_cbc_ctr_image():
     print("   - ECB: motifs encore visibles (faiblesse)")
     print("   - CBC/CTR: aspect aléatoire (sécurisé)")
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      AES (128/192/256)")
@@ -271,7 +254,6 @@ def menu():
     print("5. Benchmark AES-128 vs 192 vs 256")
     print("6. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     while True:

@@ -1,16 +1,12 @@
-# secure_channel_menu.py - Menu principal pour TP6
-# ============================================================
 
 import os
 import sys
-
 
 def print_banner():
     print("=" * 60)
     print("  TP6 - APPLICATIONS SÉCURISÉES")
     print("  Cryptographie appliquée aux communications")
     print("=" * 60)
-
 
 def menu():
     print("\n" + "=" * 55)
@@ -35,7 +31,6 @@ def menu():
     print("├─────────────────────────────────────────────────────┤")
     print("│    11. Quitter                                        │")
     print("└─────────────────────────────────────────────────────┘")
-
 
 if __name__ == "__main__":
     while True:

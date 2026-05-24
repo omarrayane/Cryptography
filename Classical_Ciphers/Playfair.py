@@ -2,7 +2,6 @@ def create_playfair_matrix(key: str):
     """Crée la matrice 5x5 pour Playfair."""
     key = key.upper().replace('J', 'I')
     
-    # Supprimer les doublons
     alphabet = []
     for char in key + 'ABCDEFGHIKLMNOPQRSTUVWXYZ':
         if char not in alphabet and char.isalpha():
@@ -15,7 +14,6 @@ def create_playfair_matrix(key: str):
     
     return matrix
 
-
 def find_position(matrix, char):
     """Trouve la position d'un caractère dans la matrice."""
     char = char.upper()
@@ -27,7 +25,6 @@ def find_position(matrix, char):
             if matrix[i][j] == char:
                 return i, j
     return -1, -1
-
 
 def prepare_text(text):
     """Prépare le texte pour Playfair (supprime non-lettres, remplace J par I, gère doublons)."""
@@ -51,7 +48,6 @@ def prepare_text(text):
             i += 2
     
     return pairs
-
 
 def playfair_encrypt(text: str, key: str) -> str:
     """Chiffre un texte avec Playfair."""
@@ -77,7 +73,6 @@ def playfair_encrypt(text: str, key: str) -> str:
             result += matrix[row2][col1]
     
     return result
-
 
 def playfair_decrypt(text: str, key: str) -> str:
     """Déchiffre un texte Playfair."""
@@ -110,7 +105,6 @@ def playfair_decrypt(text: str, key: str) -> str:
     
     return result
 
-
 def display_matrix(matrix):
     """Affiche la matrice Playfair."""
     print("\n📊 Matrice Playfair (5x5) :")
@@ -119,7 +113,6 @@ def display_matrix(matrix):
         row = " | ".join(matrix[i])
         print(f"  {row}")
     print("-" * 25)
-
 
 def menu():
     print("\n" + "=" * 50)
@@ -130,7 +123,6 @@ def menu():
     print("3. Afficher la matrice d'une clé")
     print("4. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     while True:
@@ -155,7 +147,6 @@ if __name__ == "__main__":
                     message = input("\n📝 Entrez le message à chiffrer : ")
                     key = input("🔑 Entrez la clé : ")
                 
-                # Afficher la matrice
                 matrix = create_playfair_matrix(key)
                 display_matrix(matrix)
                 
@@ -178,7 +169,6 @@ if __name__ == "__main__":
                     encrypted = input("\n🔒 Entrez le message chiffré : ")
                     key = input("🔑 Entrez la clé : ")
                 
-                # Afficher la matrice
                 matrix = create_playfair_matrix(key)
                 display_matrix(matrix)
                 

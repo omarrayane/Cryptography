@@ -12,7 +12,6 @@ import subprocess
 import sys
 from datetime import datetime
 
-
 class CryptographyApp:
     def __init__(self):
         self.root = tk.Tk()
@@ -101,28 +100,24 @@ class CryptographyApp:
         
         self.algo_var = tk.StringVar(value="cesar")
         
-        # TP1 - Classique
         tp1 = ttk.Frame(notebook)
         notebook.add(tp1, text="🏛️ TP1 - Classique")
         for name, val in [("César", "cesar"), ("Vigenère", "vigenere"), ("OTP", "otp")]:
             rb = ttk.Radiobutton(tp1, text=name, variable=self.algo_var, value=val)
             rb.pack(anchor=tk.W, padx=15, pady=5)
         
-        # TP2 - Symétrique
         tp2 = ttk.Frame(notebook)
         notebook.add(tp2, text="🔒 TP2 - Symétrique")
         for name, val in [("RC4", "rc4"), ("AES-256", "aes")]:
             rb = ttk.Radiobutton(tp2, text=name, variable=self.algo_var, value=val)
             rb.pack(anchor=tk.W, padx=15, pady=5)
         
-        # TP4 - Hachage
         tp4 = ttk.Frame(notebook)
         notebook.add(tp4, text="🔢 TP4 - Hachage")
         for name, val in [("MD5", "md5"), ("SHA-256", "sha256"), ("SHA-512", "sha512"), ("HMAC", "hmac")]:
             rb = ttk.Radiobutton(tp4, text=name, variable=self.algo_var, value=val)
             rb.pack(anchor=tk.W, padx=15, pady=5)
         
-        # TP6 - Réseau (NOUVEAU)
         tp6 = ttk.Frame(notebook)
         notebook.add(tp6, text="📡 TP6 - Réseau")
         for name, val in [("🔵 Bluetooth (simulation)", "bluetooth"),
@@ -153,7 +148,6 @@ class CryptographyApp:
         """Démarre le serveur TCP dans un nouveau terminal"""
         self.log("🚀 Démarrage du serveur TCP...")
         
-        # Ouvrir un nouveau terminal pour le serveur
         if sys.platform == "win32":
             subprocess.Popen(["start", "cmd", "/c", "cd secure_Channel && python secure_server.py"], shell=True)
         else:
@@ -349,8 +343,6 @@ Candidats: Alice, Bob, Charlie
         
         ttk.Button(log_frame, text="Effacer journal", command=self.clear_log).pack(pady=5)
         
-    # ==================== ALGORITHMES ====================
-    
     def cesar_encrypt(self, text, shift):
         result = ""
         for c in text:
@@ -419,8 +411,6 @@ Candidats: Alice, Bob, Charlie
         key_bytes = os.urandom(len(text_bytes))
         cipher = bytes(t ^ k for t, k in zip(text_bytes, key_bytes))
         return cipher.hex(), key_bytes.hex()
-    
-    # ==================== EXÉCUTION ====================
     
     def execute(self):
         algo = self.algo_var.get()
@@ -495,8 +485,6 @@ Candidats: Alice, Bob, Charlie
             self.log(f"Erreur: {str(e)}")
             messagebox.showerror("Erreur", str(e))
     
-    # ==================== UTILITAIRES ====================
-    
     def load_file(self):
         filename = filedialog.askopenfilename(
             title="Sélectionner un fichier",
@@ -543,7 +531,6 @@ Candidats: Alice, Bob, Charlie
     
     def run(self):
         self.root.mainloop()
-
 
 if __name__ == "__main__":
     app = CryptographyApp()

@@ -18,7 +18,6 @@ from Synchrone.DES import des_encrypt, des_decrypt
 from Synchrone.AES import aes_encrypt_cbc, aes_decrypt_cbc
 import hmac as hmac_module
 
-# Importer ElGamal
 from asynchrone.elgamal_api import elgamal_encrypt_string, elgamal_decrypt_string, elgamal_demo_malleability, elgamal_get_keys
 
 @app.route('/')
@@ -38,7 +37,6 @@ def execute():
     result = ""
     
     try:
-        # TP1
         if algo == 'cesar':
             text = data.get('text', '')
             shift = int(data.get('shift', 3))
@@ -118,7 +116,6 @@ def execute():
                 else:
                     result = "Format attendu dans le champ texte: chiffré_hex:clé_hex"
         
-        # TP2
         elif algo == 'rc4':
             text = data.get('text', '')
             key = data.get('key', '')
@@ -226,7 +223,6 @@ def execute():
                 except Exception as ex:
                     result = f"❌ Erreur: {ex}"
         
-        # TP3
         elif algo == 'rsa':
             text = data.get('text', '')
             user_p = data.get('rsa_p', '61')
@@ -238,7 +234,6 @@ def execute():
             n = p * q
             phi = (p - 1) * (q - 1)
             e = 65537
-            # Trouver un e compatible si phi est petit
             if phi <= e:
                 for candidate in [3, 5, 7, 11, 13, 17, 19, 23, 29, 31]:
                     from math import gcd
@@ -289,7 +284,6 @@ def execute():
             elif action == 'auth':
                 result = f"✅ DH AUTHENTIFIÉ\n{'='*40}\nParamètres: p={p}, g={g}\nA={A}, B={B}\nSecret: {secret_a}\n\n🔏 Signature ECDSA sur A et B\n→ L'attaque MITM est impossible!\n→ Forward secrecy maintenu"
         
-        # ========== ELGAMAL ==========
         elif algo == 'elgamal':
             if action == 'encrypt':
                 text = data.get('text', '')
@@ -305,7 +299,6 @@ def execute():
                 result = elgamal_get_keys()
         
         elif algo == 'ecc':
-            # Calcul réel sur courbe elliptique y² = x³ + 7 mod 97
             p_ecc = 97
             a_ecc, b_ecc = 0, 7
             Gx, Gy = 2, 22
@@ -337,7 +330,6 @@ def execute():
             for i in range(2, 8):
                 pts.append(ecc_mult(i, G, p_ecc))
             
-            # Simulation ECDH
             priv_a = 7
             priv_b = 11
             pub_a = ecc_mult(priv_a, G, p_ecc)
@@ -353,7 +345,6 @@ def execute():
             else:
                 result = f"🔐 ECDH P-256 (simulation sur y²=x³+7 mod {p_ecc})\n{'='*45}\nG = ({Gx}, {Gy})\n\nAlice: privée a={priv_a}\n  Pub_A = {priv_a}·G = ({pub_a[0]}, {pub_a[1]})\n\nBob: privée b={priv_b}\n  Pub_B = {priv_b}·G = ({pub_b[0]}, {pub_b[1]})\n\nSecret partagé:\n  Alice: {priv_a}·Pub_B = ({shared_a[0]}, {shared_a[1]})\n  Bob:   {priv_b}·Pub_A = ({shared_b[0]}, {shared_b[1]})\n\n✅ Secrets identiques: {shared_a == shared_b}\n→ Clé AES dérivée: {hashlib.sha256(str(shared_a[0]).encode()).hexdigest()[:32]}"
         
-        # TP4
         elif algo == 'md5':
             text = data.get('text', '')
             result = f"🔒 MD5\nTexte: \"{text}\"\nHash: {hashlib.md5(text.encode()).hexdigest()}\nTaille: 128 bits"
@@ -369,7 +360,6 @@ def execute():
             h = hmac_module.new(key.encode(), text.encode(), hashlib.sha256).hexdigest()
             result = f"🔒 HMAC-SHA256\nTexte: \"{text}\"\nClé: \"{key}\"\nHMAC: {h}\nTaille: 256 bits"
         
-        # TP5 — Signatures distinctes
         elif algo == 'rsa_sign':
             from cryptography.hazmat.primitives.asymmetric import rsa as rsa_lib, padding as rsa_padding
             from cryptography.hazmat.primitives import hashes
@@ -423,7 +413,6 @@ def execute():
             pub_numbers = public_key.public_numbers()
             result = f"✍️ SIGNATURE ECDSA (P-256)\n{'='*50}\nAlgorithme: ECDSA (Elliptic Curve DSA)\nCourbe: NIST P-256 (secp256r1)\nHash: SHA-256\nTaille clé: 256 bits (≡ RSA-3072)\n\nClé publique:\n  x = {pub_numbers.x}\n  y = {pub_numbers.y}\n\nMessage: \"{text}\"\nHash SHA-256: {hashlib.sha256(text.encode()).hexdigest()}\n\nSignature (DER, hex):\n{signature.hex()}\nTaille: {len(signature)*8} bits\n\n🔍 Vérification: {verif}\n\n📋 ECDSA vs RSA vs DSA:\n• Clé 256 bits ≡ RSA 3072 bits\n• Signature ~64 octets (vs ~256 pour RSA)\n• Utilisé dans Bitcoin, TLS, SSH"
         
-        # TP6
         elif algo == 'bluetooth':
             result = get_bluetooth_simulation()
         elif algo == 'wifi':
@@ -441,7 +430,6 @@ def execute():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-# ==================== SIMULATIONS TP6 ====================
 def get_bluetooth_simulation():
     return """━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔵 BLUETOOTH SECURE SIMPLE PAIRING — ECDH P-256

@@ -16,7 +16,6 @@ def rail_fence_encrypt(text: str, rails: int) -> str:
     result = ''.join([''.join(r) for r in fence])
     return result
 
-
 def rail_fence_decrypt(ciphertext: str, rails: int) -> str:
     """
     Déchiffre un texte avec le chiffre Rail Fence.
@@ -43,7 +42,6 @@ def rail_fence_decrypt(ciphertext: str, rails: int) -> str:
     
     return ''.join(result)
 
-
 def test_rail_fence():
     print("\n===== TEST RAIL FENCE =====")
     message = "HELLO WORLD"
@@ -55,7 +53,6 @@ def test_rail_fence():
     print(f"Original  : {message}")
     print(f"Chiffré   : {encrypted}")
     print(f"Déchiffré : {decrypted}")
-
 
 if __name__ == "__main__":
     test_rail_fence()

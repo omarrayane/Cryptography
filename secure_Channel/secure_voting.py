@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# secure_voting.py - Vote électronique sécurisé (version corrigée)
 
 import os
 import hashlib

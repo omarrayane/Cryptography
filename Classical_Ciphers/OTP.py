@@ -1,6 +1,5 @@
 import os
 
-
 def otp_encrypt(message: str) -> tuple:
     """
     Chiffre un message avec OTP.
@@ -10,7 +9,6 @@ def otp_encrypt(message: str) -> tuple:
     key = os.urandom(len(message_bytes))
     ciphertext = bytes(m ^ k for m, k in zip(message_bytes, key))
     return ciphertext, key
-
 
 def otp_decrypt(ciphertext: bytes, key: bytes) -> str:
     """
@@ -22,7 +20,6 @@ def otp_decrypt(ciphertext: bytes, key: bytes) -> str:
     message_bytes = bytes(c ^ k for c, k in zip(ciphertext, key))
     return message_bytes.decode("utf-8")
 
-
 def otp_encrypt_with_key(message: str, key: bytes) -> bytes:
     """
     Chiffre avec une clé fournie (pour démonstration de vulnérabilité).
@@ -32,14 +29,12 @@ def otp_encrypt_with_key(message: str, key: bytes) -> bytes:
         raise ValueError("La clé est trop courte")
     return bytes(m ^ k for m, k in zip(message_bytes, key[:len(message_bytes)]))
 
-
 def two_time_pad_attack(ciphertext1: bytes, ciphertext2: bytes) -> bytes:
     """
     Calcule C1 XOR C2 = M1 XOR M2 (vulnérabilité de réutilisation de clé).
     """
     min_len = min(len(ciphertext1), len(ciphertext2))
     return bytes(c1 ^ c2 for c1, c2 in zip(ciphertext1[:min_len], ciphertext2[:min_len]))
-
 
 def crib_dragging(xor_result: bytes, crib: str, position: int = 0) -> str:
     """
@@ -54,7 +49,6 @@ def crib_dragging(xor_result: bytes, crib: str, position: int = 0) -> str:
         result[i] = xor_result[position + i] ^ cb
     
     return result.decode('utf-8', errors='replace')
-
 
 def demonstrate_otp_vulnerability():
     """
@@ -74,14 +68,12 @@ def demonstrate_otp_vulnerability():
     print(f"Message 2 : {message2}")
     print(f"\n🔑 Clé utilisée (identique) : {key.hex()[:32]}...")
     
-    # Chiffrement avec la MÊME clé (vulnérabilité)
     cipher1 = otp_encrypt_with_key(message1, key)
     cipher2 = otp_encrypt_with_key(message2, key)
     
     print(f"\nCiphertext 1 : {cipher1.hex()[:32]}...")
     print(f"Ciphertext 2 : {cipher2.hex()[:32]}...")
     
-    # Attaque
     xor_result = two_time_pad_attack(cipher1, cipher2)
     print(f"\nC1 XOR C2 = {xor_result.hex()[:32]}...")
     
@@ -99,7 +91,6 @@ def demonstrate_otp_vulnerability():
                 print(f"  Position {pos:2d} : {result}")
         print()
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      ONE-TIME PAD (VERNAM)")
@@ -111,7 +102,6 @@ def menu():
     print("\n⚠️  ATTENTION : OTP ne peut pas être déchiffré sans la clé !")
     print("   La clé doit être transmise séparément au destinataire.")
     print("   Le déchiffrement se fait manuellement avec la même clé.")
-
 
 if __name__ == "__main__":
     while True:

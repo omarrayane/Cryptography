@@ -1,14 +1,8 @@
 # ElGamal.py - Chiffrement ElGamal
-# ============================================================
 
 import random
 import hashlib
 from math import gcd
-
-
-# ============================================================
-#  ELGAMAL - IMPLÉMENTATION COMPLÈTE
-# ============================================================
 
 class ElGamal:
     """
@@ -19,12 +13,11 @@ class ElGamal:
         self.key_bits = key_bits
         self.p = None
         self.g = None
-        self.x = None  # clé privée
-        self.y = None  # clé publique
+        self.x = None
+        self.y = None
         self._generate_keys()
 
     def _is_prime(self, n: int, k: int = 10) -> bool:
-        """Test de primalité de Miller-Rabin."""
         if n < 2:
             return False
         if n in [2, 3]:
@@ -53,7 +46,6 @@ class ElGamal:
         return True
 
     def _generate_prime(self, bits: int) -> int:
-        """Génère un nombre premier de 'bits' bits."""
         while True:
             candidate = random.getrandbits(bits)
             candidate |= (1 << bits - 1) | 1  # bits de poids fort et faible à 1
@@ -61,7 +53,6 @@ class ElGamal:
                 return candidate
 
     def _is_primitive_root(self, g: int, p: int) -> bool:
-        """Vérifie si g est une racine primitive modulo p."""
         # Vérification simple (p-1 doit être première avec g)
         phi = p - 1
         # Pour p grand, on vérifie les facteurs premiers de phi
@@ -73,14 +64,12 @@ class ElGamal:
         return True
 
     def _find_primitive_root(self, p: int) -> int:
-        """Trouve une racine primitive modulo p."""
         for g in range(2, p):
             if self._is_primitive_root(g, p):
                 return g
         return 2
 
     def _generate_keys(self):
-        """Génération des clés ElGamal."""
         # Génération du nombre premier p
         self.p = self._generate_prime(self.key_bits)
 
@@ -104,7 +93,6 @@ class ElGamal:
         # Choisir k aléatoire (1 < k < p-1)
         k = random.randint(2, self.p - 2)
 
-        # c1 = g^k mod p
         c1 = pow(self.g, k, self.p)
 
         # c2 = M * y^k mod p
@@ -117,10 +105,8 @@ class ElGamal:
         Déchiffre un couple (c1, c2).
         Retourne M.
         """
-        # s = c1^x mod p
         s = pow(c1, self.x, self.p)
 
-        # s_inv = s^(-1) mod p
         s_inv = pow(s, self.p - 2, self.p)
 
         # M = c2 * s_inv mod p
@@ -129,7 +115,6 @@ class ElGamal:
         return m
 
     def encrypt_string(self, text: str) -> list:
-        """Chiffre une chaîne de caractères."""
         result = []
         for char in text:
             c1, c2 = self.encrypt(ord(char))
@@ -137,7 +122,6 @@ class ElGamal:
         return result
 
     def decrypt_string(self, ciphertext: list) -> str:
-        """Déchiffre une chaîne de caractères."""
         result = ""
         for c1, c2 in ciphertext:
             m = self.decrypt(c1, c2)
@@ -145,16 +129,10 @@ class ElGamal:
         return result
 
     def get_keys(self):
-        """Retourne les clés publique et privée."""
         return {
             'public': {'p': self.p, 'g': self.g, 'y': self.y},
             'private': {'x': self.x}
         }
-
-
-# ============================================================
-#  MALLÉABILITÉ D'ELGAMAL
-# ============================================================
 
 def demonstrate_malleability():
     """
@@ -168,7 +146,6 @@ def demonstrate_malleability():
     # Utilisation de petits paramètres pour la démonstration
     elgamal = ElGamal(key_bits=16)  # petit pour démo
 
-    # Messages
     M1 = 12345
     M2 = 6789
 
@@ -176,7 +153,6 @@ def demonstrate_malleability():
     print(f"  M1 = {M1}")
     print(f"  M2 = {M2}")
 
-    # Chiffrement
     c1_1, c2_1 = elgamal.encrypt(M1)
     c1_2, c2_2 = elgamal.encrypt(M2)
 
@@ -191,7 +167,6 @@ def demonstrate_malleability():
     print(f"\nMultiplication des chiffrés :")
     print(f"  E(M1) * E(M2) = (c1={c1_prod}, c2={c2_prod})")
 
-    # Déchiffrement du produit
     M_prod = elgamal.decrypt(c1_prod, c2_prod)
     expected = (M1 * M2) % elgamal.p
 
@@ -202,7 +177,6 @@ def demonstrate_malleability():
     if M_prod == expected:
         print("\n✅ VÉRIFIÉ : E(M1) * E(M2) = E(M1 * M2 mod p)")
 
-    # Attaque : forger E(2M) sans connaître M
     print("\n" + "-" * 50)
     print("  ATTAQUE : Forger E(2M) sans connaître M")
     print("-" * 50)
@@ -224,7 +198,6 @@ def demonstrate_malleability():
         print("\n✅ Un attaquant peut modifier le chiffré sans connaître la clé !")
         print("   C'est la malléabilité d'ElGamal.")
 
-
 def compare_key_sizes():
     """
     Compare les tailles des clés et chiffrés RSA vs ElGamal.
@@ -234,7 +207,6 @@ def compare_key_sizes():
     print("  RSA-2048 vs ElGamal-2048")
     print("=" * 60)
 
-    # RSA-2048
     print("\n📌 RSA-2048 :")
     print("   - clé publique = 2048 bits")
     print("   - clé privée = 2048 bits")

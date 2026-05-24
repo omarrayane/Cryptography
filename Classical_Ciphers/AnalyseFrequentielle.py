@@ -13,12 +13,10 @@ FRENCH_FREQ = {
     'Y': 0.128, 'Z': 0.326
 }
 
-
 def normalize_text(text):
     # Supprime les accents et met en minuscules
     text = unicodedata.normalize('NFD', text)
     return ''.join(c for c in text if unicodedata.category(c) != 'Mn').lower()
-
 
 def analyse_frequentielle(texte):
     texte = normalize_text(texte)
@@ -37,7 +35,6 @@ def analyse_frequentielle(texte):
         print(f"  {l}: {f:.2f}%")
 
     return frequences
-
 
 def plot_histogramme(freq_obs, french_freq):
     lettres = list(string.ascii_uppercase)
@@ -59,7 +56,6 @@ def plot_histogramme(freq_obs, french_freq):
 
     plt.tight_layout()
     plt.show()
-
 
 if __name__ == '__main__':
     texte = "XINVLTFWRVNTTQPIKIDKPYAVATPIFWQVEMRPPIYWYEBZZXRGFQZRQIELZRAIQAOEAWZWEVRIDMYYZIDQBYRIZAPGHVUALRGPQAPGUEZOPWQMZNZVZEFQZRFIXTPTRVYMEHRKMZLRGMDTLGBRRQOIAXUIWMGIPMDHBRZMPWFIZATFYIEOCEPIMLPWNPSWCMGLYMDHRGTQQJEIYMYXNZMVNIFPQAOSARQMDWBRFBCEAWRWCQRIEMYJBVYIEWVPXQDMOPQACIAHMVEMZTAADMOPQTPYEEOKPWCEDLPWCIDAZRAIEVZRNYFWCMFIQANIYEQAETNVFQNYYMQZPQRRFKCYPMMTOEAWPMDHBQMQYIFXQTDUHIXMDXEEZALGGMAVDJVRMVNMRVQAWIFGAUXYAMOIEMBREUPHVGMTPWRXXMDIPLMVRIFHUVQSEQMBTSAWBMCWBRZMWPRW"

@@ -27,7 +27,6 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.backends import default_backend
 
-
 # ═══════════════════════════════════════════════════════════
 #  PAILLIER CRYPTOSYSTEM (textbook)
 # ═══════════════════════════════════════════════════════════
@@ -70,7 +69,6 @@ def _gen_prime(bits):
         n = random.getrandbits(bits) | (1 << bits - 1) | 1
         if _is_prime(n):
             return n
-
 
 class Paillier:
     """Chiffrement homomorphique additif de Paillier (textbook)."""
@@ -116,7 +114,6 @@ class Paillier:
         n, _ = self.pub
         return (c1 * c2) % (n * n)
 
-
 # ═══════════════════════════════════════════════════════════
 #  HELPERS
 # ═══════════════════════════════════════════════════════════
@@ -159,7 +156,6 @@ def _recv(sock) -> bytes:
             raise ConnectionError("Connexion fermée")
         buf += chunk
     return buf
-
 
 # ═══════════════════════════════════════════════════════════
 #  MAIN APP
@@ -270,7 +266,6 @@ class TP6App:
 
     # ════════════════════════════════════════════════════════════════
     #  EXERCICE 6.1 — TCP SÉCURISÉ
-    #  Protocole :
     #    1. Serveur génère RSA-2048 → envoie clé publique PEM
     #    2. Client génère AES-256 → chiffre avec RSA-OAEP → envoie
     #    3. Les deux utilisent AES-256-GCM pour tous les messages
@@ -467,7 +462,6 @@ class TP6App:
 
     # ════════════════════════════════════════════════════════════════
     #  EXERCICE 6.2 — BLUETOOTH
-    #  Protocole SSP simulé :
     #    ECDH P-256 → LTK via HKDF → AES-128-GCM (≈ AES-CCM)
     # ════════════════════════════════════════════════════════════════
     def _build_bt(self, parent):
@@ -804,7 +798,6 @@ class TP6App:
     #  EXERCICE 6.4 — VOTE ÉLECTRONIQUE HOMOMORPHIQUE (PAILLIER)
     #  Propriété : E(m1) · E(m2) = E(m1 + m2) mod n²
     #  Garanties : confidentialité, intégrité, anti-double-vote,
-    #              dépouillement sans déchiffrement individuel
     # ════════════════════════════════════════════════════════════════
     def _build_vote(self, parent):
         main = tk.Frame(parent, bg='#1e1e2e')
@@ -1037,7 +1030,6 @@ class TP6App:
     # ── Entry point ──────────────────────────────────
     def run(self):
         self.root.mainloop()
-
 
 if __name__ == "__main__":
     app = TP6App()

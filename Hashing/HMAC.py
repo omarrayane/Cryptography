@@ -5,7 +5,6 @@ def hmac_hash():
     word = input("Enter the word to hash with HMAC: ")
     key = input("Enter the secret key for HMAC: ")
     
-   
     hmac_obj = hmac.new(
         key.encode('utf-8'),
         word.encode('utf-8'),

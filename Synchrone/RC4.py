@@ -1,12 +1,10 @@
 # RC4.py - Utilisation de pycryptodome
-# ============================================================
 
 from Crypto.Cipher import ARC4
 import hashlib
 import os
 from collections import Counter
 import matplotlib.pyplot as plt
-
 
 class RC4:
     """Wrapper pour RC4 de pycryptodome."""
@@ -25,7 +23,6 @@ class RC4:
     def decrypt(self, data):
         return self.encrypt(data)  # RC4 est symétrique
 
-
 def weak_iv_attack_demo():
     """
     Vulnérabilité WEP : IV faibles.
@@ -35,7 +32,6 @@ def weak_iv_attack_demo():
     print("  VULNÉRABILITÉ WEP - IV FAIBLES")
     print("=" * 60)
 
-    # Simulation d'une clé WEP (5 ou 13 octets)
     secret_key = b"SecretKey"
 
     print("\nTest avec IV faibles (commençant par 0x00, 0x01, 0x02...):")
@@ -51,7 +47,6 @@ def weak_iv_attack_demo():
 
         print(f"IV = {iv.hex()} : premier octet keystream = 0x{keystream[0]:02x}")
 
-
 def rc4_byte_bias_analysis(num_keys=1000):
     """
     Analyse du biais statistique de RC4.
@@ -65,7 +60,7 @@ def rc4_byte_bias_analysis(num_keys=1000):
     second_byte_counts = Counter()
 
     for _ in range(num_keys):
-        key = os.urandom(16)  # Clé aléatoire 128 bits
+        key = os.urandom(16)
         rc4 = RC4(key)
         keystream = rc4.encrypt(b"\x00" * 3)  # Générer 3 octets
         second_byte_counts[keystream[1]] += 1
@@ -73,7 +68,6 @@ def rc4_byte_bias_analysis(num_keys=1000):
     print("\nDistribution du 2ème octet du keystream :")
     print("-" * 40)
 
-    # Afficher les valeurs les plus fréquentes
     for byte_val, count in second_byte_counts.most_common(10):
         expected = num_keys / 256
         bias = (count - expected) / expected * 100
@@ -86,7 +80,6 @@ def rc4_byte_bias_analysis(num_keys=1000):
     print(f"\n✅ Biais vers 0 : {zero_bias:+.2f}% (attendu: {expected:.1f}, observé: {zero_count})")
 
     return second_byte_counts
-
 
 def plot_rc4_bias(byte_counts, num_keys):
     """Affiche un graphique des biais RC4."""
@@ -107,7 +100,6 @@ def plot_rc4_bias(byte_counts, num_keys):
     plt.xticks(bytes_vals, [f'0x{b:02x}' for b in bytes_vals])
     plt.show()
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      RC4 STREAM CIPHER")
@@ -117,7 +109,6 @@ def menu():
     print("3. Biais statistiques RC4")
     print("4. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     while True:

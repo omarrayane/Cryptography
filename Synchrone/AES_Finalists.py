@@ -1,7 +1,4 @@
-# AES_Finalists.py - Les 5 finalistes du concours AES (NIST 1997-2000)
-# ============================================================
 # Algorithmes : Rijndael (AES), Twofish, Serpent, RC6, MARS
-# ============================================================
 
 from Crypto.Cipher import AES
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -10,9 +7,7 @@ import os
 import time
 import hashlib
 
-# ============================================================
 #  1. RIJNDAEL (AES - le gagnant)
-# ============================================================
 
 class Rijndael:
     """
@@ -48,10 +43,7 @@ class Rijndael:
             "statut": "✅ GAGNANT (devenu AES en 2001)"
         }
 
-
-# ============================================================
 #  2. TWOFISH
-# ============================================================
 
 class Twofish:
     """
@@ -108,12 +100,10 @@ class Twofish:
         return bytes(result)
     
     def decrypt(self, ciphertext: bytes) -> bytes:
-        # Déchiffrement simplifié
         result = bytearray(ciphertext[:16])
         for i in range(16):
             # Inverse simplifiée
             orig = result[i] ^ (self.key[i % len(self.key)] if self.key else 0)
-            # Trouver l'inverse dans la S-box (simplifié)
             for j, val in enumerate(self.q0):
                 if val == orig:
                     result[i] = j
@@ -131,10 +121,7 @@ class Twofish:
             "statut": "Finaliste"
         }
 
-
-# ============================================================
 #  3. SERPENT
-# ============================================================
 
 class Serpent:
     """
@@ -200,10 +187,7 @@ class Serpent:
             "statut": "Finaliste (meilleure note sécurité)"
         }
 
-
-# ============================================================
 #  4. RC6
-# ============================================================
 
 class RC6:
     """
@@ -233,7 +217,6 @@ class RC6:
         return ((val << shift) | (val >> (self.w - shift))) & 0xFFFFFFFF
     
     def _ror(self, val, shift):
-        """Rotation droite."""
         shift %= self.w
         return ((val >> shift) | (val << (self.w - shift))) & 0xFFFFFFFF
     
@@ -284,10 +267,7 @@ class RC6:
             "statut": "Finaliste"
         }
 
-
-# ============================================================
 #  5. MARS
-# ============================================================
 
 class MARS:
     """
@@ -341,16 +321,10 @@ class MARS:
             "statut": "Finaliste"
         }
 
-
-# ============================================================
-#  BENCHMARK COMPARATIF
-# ============================================================
-
 def pad_to_block(data: bytes, block_size: int = 16) -> bytes:
     """Padding PKCS#7."""
     padding_len = block_size - (len(data) % block_size)
     return data + bytes([padding_len] * padding_len)
-
 
 def benchmark_finalists(data_size_mb: float = 1):
     """Benchmark des 5 finalistes."""
@@ -397,7 +371,6 @@ def benchmark_finalists(data_size_mb: float = 1):
     for name, metrics in results.items():
         print(f"{name:<20} {metrics['encrypt']:<18.4f} {metrics['decrypt']:<18.4f} {metrics['throughput']:<15.2f}")
 
-
 def display_descriptions():
     """Affiche les descriptions architecturales des 5 finalistes."""
     print("\n" + "=" * 70)
@@ -422,7 +395,6 @@ def display_descriptions():
         print(f"\n📌 {algo['nom']}")
         print(f"   - Originalité : {algo['originalite']}")
         print(f"   - Statut : {algo['statut']}")
-
 
 def compare_encryption():
     """Compare les chiffrés du même message avec les 5 algorithmes."""
@@ -457,7 +429,6 @@ def compare_encryption():
         encrypted = algo.encrypt(message)
         print(f"{name:<15} {encrypted.hex():<50}")
 
-
 def menu():
     print("\n" + "=" * 55)
     print("   LES 5 FINALISTES DU CONCOURS AES (NIST 1997-2000)")
@@ -467,7 +438,6 @@ def menu():
     print("3. Benchmark (performances)")
     print("4. Quitter")
     print("-" * 55)
-
 
 if __name__ == "__main__":
     while True:

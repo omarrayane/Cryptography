@@ -1,8 +1,4 @@
-# secure_bluetooth.py - Communication Bluetooth sécurisée (simulation)
-# ============================================================
 # Note: Ceci est une SIMULATION car le Bluetooth réel nécessite du matériel
-#       et des bibliothèques spécifiques (PyBluez, bleak)
-# ============================================================
 
 import hashlib
 import os
@@ -12,7 +8,6 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.backends import default_backend
-
 
 class BluetoothDevice:
     """
@@ -55,7 +50,6 @@ class BluetoothDevice:
         self.peer_public_key = peer_device.public_key
         peer_device.peer_public_key = self.public_key
         
-        # Calcul du secret partagé ECDH
         shared_secret = self.private_key.exchange(ec.ECDH(), peer_device.public_key)
         
         # Dérivation de la Long Term Key (LTK) avec PIN
@@ -98,7 +92,6 @@ class BluetoothDevice:
         # Construire le nonce (packet counter + device ID)
         nonce = self._packet_counter.to_bytes(8, 'big') + os.urandom(4)
         
-        # Chiffrement AES-GCM (simule AES-CCM du Bluetooth)
         cipher = AESGCM(self.encryption_key)
         ciphertext = cipher.encrypt(nonce, message_bytes, None)
         
@@ -133,7 +126,6 @@ class BluetoothDevice:
         """Reçoit et déchiffre un message."""
         plaintext = self.decrypt_message(encrypted)
         print(f"📱 {self.name} reçu: {plaintext}")
-
 
 def simulate_bluetooth_communication():
     """Simule une communication Bluetooth sécurisée entre deux appareils."""
@@ -181,14 +173,12 @@ def simulate_bluetooth_communication():
     print("  ⚠️  Faiblesse: PIN court (vulnérabilité aux brute force)")
     print("  ✅ Bluetooth 4.2+ : LE Secure Connections (ECC)")
 
-
 def simulate_wifi_security():
     """Simule la sécurité Wi-Fi (WPA2/WPA3)."""
     print("\n" + "=" * 60)
     print("  WI-FI SECURITY SIMULATION (WPA2/WPA3)")
     print("=" * 60)
     
-    # Simulation du 4-Way Handshake WPA2
     print("\n📡 WPA2 4-Way Handshake Simulation:\n")
     
     # Paramètres (comme dans le standard 802.11i)
@@ -207,14 +197,13 @@ def simulate_wifi_security():
     snonce = os.urandom(32)
     print(f"  2. Échange de nonces: ANonce={anonce.hex()[:8]}..., SNonce={snonce.hex()[:8]}...")
     
-    # Calcul du PTK (Pairwise Transient Key) = PRF(PMK + ANonce + SNonce + MAC)
     ptk_material = pmk + anonce + snonce
     ptk = hashlib.sha256(ptk_material).digest()
     print(f"  3. PTK (Pairwise Transient Key) calculé: {ptk.hex()[:32]}...")
     
     # Clés dérivées
-    kck = ptk[:16]  # Key Confirmation Key
-    kek = ptk[16:32]  # Key Encryption Key
+    kck = ptk[:16]
+    kek = ptk[16:32]
     tek = ptk[32:48]  # Temporal Encryption Key
     
     print(f"  4. Clés dérivées:")
@@ -242,7 +231,6 @@ def simulate_wifi_security():
     
     return pmk, ptk
 
-
 class WiFiAccessPoint:
     """Simulation d'un point d'accès Wi-Fi sécurisé."""
     
@@ -267,7 +255,6 @@ class WiFiAccessPoint:
         anonce = os.urandom(32)
         snonce = os.urandom(32)
         
-        # Calcul du PTK
         ptk_material = self.pmk + anonce + snonce + client_mac.encode() + self.ssid.encode()
         ptk = hashlib.sha256(ptk_material).digest()
         
@@ -287,7 +274,6 @@ class WiFiAccessPoint:
                 encrypted = cipher.encrypt(nonce, data, None)
                 return nonce + encrypted
         return None
-
 
 def demonstrate_bluetooth_le():
     """Démonstration du Bluetooth Low Energy (BLE) sécurisé."""
@@ -327,7 +313,6 @@ def demonstrate_bluetooth_le():
             print(f"   ✅ LTK établie: {self.ltk.hex()[:16]}...")
             return True
     
-    # Simulation d'un central (smartphone) et d'un peripheral (capteur)
     smartphone = BLEDevice("Smartphone", "central")
     heart_rate_sensor = BLEDevice("Capteur FC", "peripheral")
     
@@ -339,7 +324,6 @@ def demonstrate_bluetooth_le():
     print("   - Pas: 1245")
     print("   - Calories: 85")
 
-
 def menu():
     print("\n" + "=" * 55)
     print("  COMMUNICATIONS SÉCURISÉES - Bluetooth & Wi-Fi")
@@ -349,7 +333,6 @@ def menu():
     print("3. Simuler Bluetooth Low Energy (BLE)")
     print("4. Quitter")
     print("-" * 55)
-
 
 if __name__ == "__main__":
     while True:

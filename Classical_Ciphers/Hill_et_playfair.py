@@ -8,7 +8,6 @@ def inverse_modulaire(a: int, m: int):
             return x
     return None
 
-
 def matrix_mod_inverse(matrix: np.ndarray, modulus: int) -> np.ndarray:
     
     det = int(round(np.linalg.det(matrix))) % modulus
@@ -28,7 +27,6 @@ def matrix_mod_inverse(matrix: np.ndarray, modulus: int) -> np.ndarray:
 
     inverse = (det_inv * adjoint) % modulus
     return inverse
-
 
 def hill_encrypt(text: str, key_matrix: np.ndarray) -> str:
     
@@ -52,14 +50,11 @@ def hill_encrypt(text: str, key_matrix: np.ndarray) -> str:
 
     return result
 
-
 def hill_decrypt(text: str, key_matrix: np.ndarray) -> str:
     
     inverse_key = matrix_mod_inverse(key_matrix, 26)
     return hill_encrypt(text, inverse_key)
 
-
-# ======== CHIFFRE DE PLAYFAIR ========
 def create_playfair_matrix(key: str) -> List[List[str]]:
     key = key.upper().replace('J', 'I')
 
@@ -74,7 +69,6 @@ def create_playfair_matrix(key: str) -> List[List[str]]:
 
     return matrix
 
-
 def find_position(matrix: List[List[str]], char: str) -> Tuple[int, int]:
     char = char.upper()
     if char == 'J':
@@ -86,7 +80,6 @@ def find_position(matrix: List[List[str]], char: str) -> Tuple[int, int]:
                 return i, j
 
     return -1, -1
-
 
 def playfair_encrypt(text: str, key: str) -> str:
     matrix = create_playfair_matrix(key)
@@ -116,7 +109,6 @@ def playfair_encrypt(text: str, key: str) -> str:
 
     return result
 
-
 def playfair_decrypt(text: str, key: str) -> str:
     matrix = create_playfair_matrix(key)
     text = ''.join(c for c in text.upper() if c.isalpha())
@@ -136,7 +128,6 @@ def playfair_decrypt(text: str, key: str) -> str:
             result += matrix[row1][col2] + matrix[row2][col1]
 
     return result
-
 
 if __name__ == "__main__":
     print("===== TEST HILL =====")

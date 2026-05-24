@@ -1,7 +1,5 @@
 # ECC.py - Cryptographie sur Courbes Elliptiques
-# ============================================================
 # Courbe : y² = x³ + ax + b mod p
-# ============================================================
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes, serialization
@@ -12,10 +10,7 @@ from Crypto.Util.Padding import pad, unpad
 import os
 import hashlib
 
-
-# ============================================================
 #  COURBE ELLIPTIQUE PÉDAGOGIQUE (y² = x³ + 7 mod 97)
-# ============================================================
 
 class Point:
     """
@@ -40,7 +35,6 @@ class Point:
         if self.is_infinity:
             return "Point(∞)"
         return f"Point({self.x}, {self.y})"
-
 
 class EllipticCurve:
     """
@@ -73,7 +67,6 @@ class EllipticCurve:
         if P.x == Q.x and (P.y + Q.y) % self.p == 0:
             return Point(None, None, self.a, self.b, self.p, is_infinity=True)
         
-        # Calcul de la pente
         if P.x == Q.x and P.y == Q.y:
             # Tangente (dérivée)
             s = ((3 * pow(P.x, 2, self.p) + self.a) * pow(2 * P.y, self.p - 2, self.p)) % self.p
@@ -81,7 +74,6 @@ class EllipticCurve:
             # Corde
             s = ((Q.y - P.y) * pow(Q.x - P.x, self.p - 2, self.p)) % self.p
         
-        # Calcul du nouveau point
         x3 = (pow(s, 2, self.p) - P.x - Q.x) % self.p
         y3 = (s * (P.x - x3) - P.y) % self.p
         
@@ -112,7 +104,6 @@ class EllipticCurve:
         left = pow(point.y, 2, self.p)
         right = (pow(point.x, 3, self.p) + self.a * point.x + self.b) % self.p
         return left == right
-
 
 def demonstrate_ec_pedagogical():
     """
@@ -158,7 +149,6 @@ def demonstrate_ec_pedagogical():
     print("  PROPRIÉTÉS DU GROUPE")
     print("-" * 40)
     
-    # Test de la loi de groupe
     a, b = 3, 5
     aG = curve.scalar_multiplication(a, G)
     bG = curve.scalar_multiplication(b, G)
@@ -171,10 +161,7 @@ def demonstrate_ec_pedagogical():
     
     print("\n✅ Le groupe est cyclique et vérifie les propriétés")
 
-
-# ============================================================
 #  ECDH SUR P-256 (NIST)
-# ============================================================
 
 def ecdh_p256_key_pair():
     """
@@ -184,14 +171,12 @@ def ecdh_p256_key_pair():
     public_key = private_key.public_key()
     return private_key, public_key
 
-
 def ecdh_compute_shared_secret(private_key, peer_public_key):
     """
     Calcule le secret partagé avec ECDH.
     """
     shared_secret = private_key.exchange(ec.ECDH(), peer_public_key)
     return shared_secret
-
 
 def derive_key_from_ecdh(shared_secret, length=32, info=b"ecdh-key-derivation"):
     """
@@ -204,7 +189,6 @@ def derive_key_from_ecdh(shared_secret, length=32, info=b"ecdh-key-derivation"):
         info=info,
         backend=default_backend()
     ).derive(shared_secret)
-
 
 def demonstrate_ecdh():
     """
@@ -235,10 +219,7 @@ def demonstrate_ecdh():
     
     return aes_key
 
-
-# ============================================================
 #  ECIES (CHIFFREMENT HYBRIDE ECC + AES)
-# ============================================================
 
 def ecies_encrypt(message: bytes, recipient_public_key) -> tuple:
     """
@@ -251,13 +232,11 @@ def ecies_encrypt(message: bytes, recipient_public_key) -> tuple:
     ephemeral_priv = ec.generate_private_key(ec.SECP256R1(), default_backend())
     ephemeral_pub = ephemeral_priv.public_key()
     
-    # Calcul du secret partagé
     shared_secret = ecdh_compute_shared_secret(ephemeral_priv, recipient_public_key)
     
     # Dérivation de la clé AES
     aes_key = derive_key_from_ecdh(shared_secret, info=b"ecies-encryption")
     
-    # Chiffrement AES-GCM
     iv = os.urandom(12)
     cipher = Cipher(algorithms.AES(aes_key), modes.GCM(iv), backend=default_backend())
     encryptor = cipher.encryptor()
@@ -271,7 +250,6 @@ def ecies_encrypt(message: bytes, recipient_public_key) -> tuple:
     
     return ephemeral_pub_bytes, iv, ciphertext, encryptor.tag
 
-
 def ecies_decrypt(ephemeral_pub_bytes: bytes, iv: bytes, ciphertext: bytes, tag: bytes, recipient_private_key) -> bytes:
     """
     Déchiffrement ECIES.
@@ -279,7 +257,6 @@ def ecies_decrypt(ephemeral_pub_bytes: bytes, iv: bytes, ciphertext: bytes, tag:
     # Chargement de la clé publique éphémère
     ephemeral_pub = serialization.load_der_public_key(ephemeral_pub_bytes, backend=default_backend())
     
-    # Calcul du secret partagé
     shared_secret = ecdh_compute_shared_secret(recipient_private_key, ephemeral_pub)
     
     # Dérivation de la clé AES
@@ -291,7 +268,6 @@ def ecies_decrypt(ephemeral_pub_bytes: bytes, iv: bytes, ciphertext: bytes, tag:
     plaintext = decryptor.update(ciphertext) + decryptor.finalize()
     
     return plaintext
-
 
 def demonstrate_ecies():
     """
@@ -306,7 +282,6 @@ def demonstrate_ecies():
     
     print("\n📌 Destinataire - Clé publique générée")
     
-    # Message
     test = input("Voulez-vous (t)ester ou (u)tiliser votre propre message ? ").lower()
     if test == 't':
         message = b"Message secret chiffre avec ECIES (ECC + AES-GCM)"
@@ -314,14 +289,12 @@ def demonstrate_ecies():
     else:
         message = input("Message à chiffrer : ").encode()
     
-    # Chiffrement
     print("\n[Chiffrement ECIES]")
     ephemeral_pub, iv, ciphertext, tag = ecies_encrypt(message, recipient_pub)
     print(f"  Clé éphémère: {ephemeral_pub.hex()[:32]}...")
     print(f"  IV: {iv.hex()}")
     print(f"  Chiffré: {ciphertext.hex()[:50]}...")
     
-    # Déchiffrement
     print("\n[Déchiffrement ECIES]")
     decrypted = ecies_decrypt(ephemeral_pub, iv, ciphertext, tag, recipient_priv)
     print(f"  Message déchiffré: {decrypted.decode()}")
@@ -329,11 +302,6 @@ def demonstrate_ecies():
     if message == decrypted:
         print("\n✅ ECIES fonctionne parfaitement !")
         print("   (Combinaison d'ECC pour l'échange de clé + AES pour le chiffrement)")
-
-
-# ============================================================
-#  MENU
-# ============================================================
 
 def menu():
     print("\n" + "=" * 55)
@@ -344,7 +312,6 @@ def menu():
     print("3. ECIES (chiffrement hybride ECC + AES)")
     print("4. Quitter")
     print("-" * 55)
-
 
 if __name__ == "__main__":
     while True:

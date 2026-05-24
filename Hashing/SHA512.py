@@ -1,10 +1,8 @@
 # SHA512.py - Secure Hash Algorithm 2 (512 bits)
-# ============================================================
 
 import hashlib
 import time
 import os
-
 
 def sha512_hash(data):
     """
@@ -13,7 +11,6 @@ def sha512_hash(data):
     if isinstance(data, str):
         data = data.encode('utf-8')
     return hashlib.sha512(data).hexdigest()
-
 
 def sha512_file_hash(filename):
     """
@@ -24,7 +21,6 @@ def sha512_file_hash(filename):
         for chunk in iter(lambda: f.read(4096), b''):
             sha512.update(chunk)
     return sha512.hexdigest()
-
 
 def avalanche_effect_sha512():
     """
@@ -58,7 +54,6 @@ def avalanche_effect_sha512():
 
     if 45 < ratio < 55:
         print("   ✅ Effet avalanche vérifié (≈50%)")
-
 
 def benchmark_all_hash(size_mb=100):
     """
@@ -95,7 +90,6 @@ def benchmark_all_hash(size_mb=100):
         output_size = {"MD5": "128 bits", "SHA-256": "256 bits", "SHA-512": "512 bits"}[algo]
         print(f"{algo:<12} {elapsed:<15.4f} {throughput:<15.2f} {output_size:<15}")
 
-    # Trouver le plus rapide et le plus lent
     fastest = min(results, key=results.get)
     slowest = max(results, key=results.get)
 
@@ -103,7 +97,6 @@ def benchmark_all_hash(size_mb=100):
     print(f"   ✅ Le plus rapide : {fastest} ({results[fastest]:.4f}s)")
     print(f"   ⚠️  Le plus lent   : {slowest} ({results[slowest]:.4f}s)")
     print(f"\n   Note : SHA-512 est souvent plus rapide que SHA-256 sur les CPU 64 bits")
-
 
 def compare_all_hash():
     """
@@ -144,7 +137,6 @@ def compare_all_hash():
     print(f"{'SHA-256':<12} {sha256_result:<70} {'256 bits':<10} {sha256_time:<12.2f}")
     print(f"{'SHA-512':<12} {sha512_result:<70} {'512 bits':<10} {sha512_time:<12.2f}")
 
-
 def sha512_vs_sha256_performance():
     """
     Compare spécifiquement SHA-256 vs SHA-512.
@@ -176,7 +168,6 @@ def sha512_vs_sha256_performance():
     else:
         print(f"\n📊 SHA-256 est {1/ratio:.2f}x PLUS RAPIDE que SHA-512 sur cette machine")
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      SHA-512 - SECURE HASH ALGORITHM")
@@ -189,7 +180,6 @@ def menu():
     print("6. SHA-256 vs SHA-512 (performance)")
     print("7. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     while True:
