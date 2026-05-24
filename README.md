@@ -509,17 +509,6 @@ Le serveur acceptera les connexions du client avec chiffrement automatique.
 
 ## 🔗 Références
 
-### Ressources académiques
-
-- [NIST Special Publication 800-38B - Recommendation for Block Cipher Modes of Operation](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38b.pdf)
-- [RFC 3394 - AES Key Wrap Algorithm](https://tools.ietf.org/html/rfc3394)
-- [FIPS 197 - Advanced Encryption Standard](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf)
-
-### Bibliographie
-
-- **Stallings, W.** (2017). _Cryptography and Network Security: Principles and Practice_ (7th Edition)
-- **Menezes, A., van Oorschot, P., & Vanstone, S.** (1996). _Handbook of Applied Cryptography_
-- **Ferguson, N., & Schneier, B.** (2003). _Practical Cryptography_
 
 ### Outils et bibliothèques utilisées
 
