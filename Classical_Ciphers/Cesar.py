@@ -8,10 +8,8 @@ def cesar_encrypt(text: str, shift: int) -> str:
             result += char
     return result
 
-
 def cesar_decrypt(text: str, shift: int) -> str:
     return cesar_encrypt(text, -shift)
-
 
 def brute_force_cesar(ciphertext: str):
     """
@@ -22,7 +20,6 @@ def brute_force_cesar(ciphertext: str):
         decrypted = cesar_decrypt(ciphertext, shift)
         results.append((shift, decrypted))
     return results
-
 
 def detect_language(text: str) -> tuple:
     """
@@ -89,7 +86,6 @@ def detect_language(text: str) -> tuple:
     
     return score_fr, score_en, language
 
-
 def break_cesar_auto(ciphertext: str) -> tuple:
     """
     Attaque automatique : trouve la meilleure clé en testant toutes les clés
@@ -119,7 +115,6 @@ def break_cesar_auto(ciphertext: str) -> tuple:
     
     return best_shift, best_text, best_score, best_lang
 
-
 def indice_coincidence(text: str) -> float:
     """
     Calcule l'indice de coïncidence d'un texte.
@@ -134,7 +129,6 @@ def indice_coincidence(text: str) -> float:
     counts = Counter(text)
     ic = sum(count * (count - 1) for count in counts.values()) / (n * (n - 1))
     return ic
-
 
 def break_cesar_with_ic(ciphertext: str) -> tuple:
     """
@@ -154,7 +148,6 @@ def break_cesar_with_ic(ciphertext: str) -> tuple:
     
     return best_shift, cesar_decrypt(ciphertext, best_shift)
 
-
 def afficher_menu():
     print("-" * 60)
     print("      CHIFFREMENT DE CESAR")
@@ -165,7 +158,6 @@ def afficher_menu():
     print("4. Attaque par indice de coïncidence")
     print("5. Quitter")
     print("-" * 60)
-
 
 if __name__ == "__main__":
     while True:
@@ -214,7 +206,6 @@ if __name__ == "__main__":
             elif choix == 3:
                 mode = input("Voulez-vous (t)ester avec un exemple ou (u)tiliser votre propre texte ? ").lower()
                 if mode == 't':
-                    # Exemple en anglais
                     ciphertext = cesar_encrypt("hello world hope you are doing well", 4)
                     print(f"Texte chiffré de test (anglais) : {ciphertext}")
                     print("\n" + "=" * 60)

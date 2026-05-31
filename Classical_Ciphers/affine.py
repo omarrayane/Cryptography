@@ -18,7 +18,6 @@ def inverse_modulaire_manuel(a: int, m: int) -> Optional[int]:
         v1, v2, v3, u1, u2, u3 = (u1 - q * v1), (u2 - q * v2), (u3 - q * v3), v1, v2, v3
     return u1 % m
 
-
 def affine_encrypt(text: str, a: int, b: int) -> str:
 
     result = ""
@@ -35,7 +34,6 @@ def affine_encrypt(text: str, a: int, b: int) -> str:
 
 def affine_decrypt(text: str, a: int, b: int) -> str:
     
-
     try:
         a_inv = pow(a, -1, 26)  
     except ValueError:

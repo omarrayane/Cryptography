@@ -1,11 +1,9 @@
 # keygen.py - Génération des paires de clés RSA
-# ============================================================
 
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import os
-
 
 def generate_keys(name: str, key_size: int = 2048):
     """
@@ -48,7 +46,6 @@ def generate_keys(name: str, key_size: int = 2048):
 
     return private_key, public_key
 
-
 def load_private_key(name: str):
     """Charge une clé privée depuis le dossier keys."""
     path = f"keys/{name}_private_key.pem"
@@ -59,7 +56,6 @@ def load_private_key(name: str):
             backend=default_backend()
         )
 
-
 def load_public_key(name: str):
     """Charge une clé publique depuis le dossier keys."""
     path = f"keys/{name}_public_key.pem"
@@ -68,7 +64,6 @@ def load_public_key(name: str):
             f.read(),
             backend=default_backend()
         )
-
 
 def exchange_public_keys():
     """
@@ -90,7 +85,6 @@ def exchange_public_keys():
     else:
         print("   ❌ Clés manquantes. Générez-les d'abord !")
         return False
-
 
 if __name__ == "__main__":
     print("=" * 50)

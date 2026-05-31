@@ -1,4 +1,3 @@
-# elgamal_api.py - Interface simple pour ElGamal
 from asynchrone.ElGamal import ElGamal
 
 _elgamal_instance = None

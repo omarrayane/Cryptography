@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 CryptoSuite Complete - Tous les Algorithmes</title>
+    <meta name="description" content="Application cryptographique complète couvrant les TPs 1 à 6 : chiffrements classiques, symétriques, asymétriques, hachage, signatures et applications sécurisées.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Animated background particles -->
+    <div class="bg-particles" id="bgParticles"></div>
+
+    <!-- Header -->
+    <header class="header" id="appHeader">
+        <div class="header-left">
+            <div class="logo-glow">
+                <img src="/static/../usthb_logo.png" alt="USTHB" class="logo-img" onerror="this.style.display='none'">
+            </div>
+            <div class="header-text">
+                <h1>🔐 CryptoSuite Complete</h1>
+                <p class="subtitle">TP1 à TP6 — Tous les algorithmes cryptographiques</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="status-badge" id="statusBadge">
+                <span class="status-dot"></span>
+                <span id="statusText">Prêt</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="main-layout">
+        <!-- Left Panel: Algorithm Selection -->
+        <aside class="panel panel-left" id="algoPanel">
+            <div class="panel-header">
+                <h2>⚡ Algorithmes</h2>
+            </div>
+            <div class="tabs" id="tpTabs">
+                <button class="tab active" data-tp="tp1">🏛️ TP1</button>
+                <button class="tab" data-tp="tp2">🔒 TP2</button>
+                <button class="tab" data-tp="tp3">🔑 TP3</button>
+                <button class="tab" data-tp="tp4">🔢 TP4</button>
+                <button class="tab" data-tp="tp5">✍️ TP5</button>
+                <button class="tab" data-tp="tp6">📡 TP6</button>
+            </div>
+
+            <!-- TP1 -->
+            <div class="algo-list" id="tp1" style="display:block">
+                <button class="algo-btn active" data-algo="cesar" data-desc="Attaque par force brute intégrée">César</button>
+                <button class="algo-btn" data-algo="vigenere" data-desc="Test de Kasiski + IC">Vigenère</button>
+                <button class="algo-btn" data-algo="hill" data-desc="Attaque à clair connu">Hill 2x2</button>
+                <button class="algo-btn" data-algo="otp" data-desc="Démo vulnérabilité réutilisation">OTP (Vernam)</button>
+                <button class="algo-btn" data-algo="playfair" data-desc="Chiffrement par digrammes">Playfair</button>
+                <button class="algo-btn" data-algo="railfence" data-desc="Transposition">Rail Fence</button>
+                <button class="algo-btn" data-algo="freq" data-desc="Indice de coïncidence">Analyse Fréq.</button>
+            </div>
+            <!-- TP2 -->
+            <div class="algo-list" id="tp2">
+                <button class="algo-btn" data-algo="rc4" data-desc="Stream cipher - Vulnérabilités WEP">RC4</button>
+                <button class="algo-btn" data-algo="des" data-desc="ECB/CBC - Visualisation motifs">DES</button>
+                <button class="algo-btn" data-algo="tdes" data-desc="Triple DES - Benchmark">3DES</button>
+                <button class="algo-btn" data-algo="aes128" data-desc="ECB/CBC/CTR">AES-128</button>
+                <button class="algo-btn" data-algo="aes192" data-desc="192 bits">AES-192</button>
+                <button class="algo-btn" data-algo="aes256" data-desc="256 bits - Effet avalanche">AES-256</button>
+                <button class="algo-btn" data-algo="twofish" data-desc="Finaliste AES">Twofish</button>
+                <button class="algo-btn" data-algo="serpent" data-desc="Finaliste AES">Serpent</button>
+                <button class="algo-btn" data-algo="rc6" data-desc="Finaliste AES">RC6</button>
+                <button class="algo-btn" data-algo="mars" data-desc="Finaliste AES">MARS</button>
+            </div>
+            <!-- TP3 -->
+            <div class="algo-list" id="tp3">
+                <button class="algo-btn" data-algo="rsa" data-desc="Génération 512/1024/2048 bits">RSA</button>
+                <button class="algo-btn" data-algo="rsa_hybrid" data-desc="RSA + AES pour gros fichiers">RSA-Hybride</button>
+                <button class="algo-btn" data-algo="dh" data-desc="Échange de clés - MITM">Diffie-Hellman</button>
+                <button class="algo-btn" data-algo="elgamal" data-desc="Malléabilité démontrée">ElGamal</button>
+                <button class="algo-btn" data-algo="ecc" data-desc="Courbes elliptiques P-256">ECC</button>
+                <button class="algo-btn" data-algo="ecdh" data-desc="ECDH + AES">ECDH</button>
+            </div>
+            <!-- TP4 -->
+            <div class="algo-list" id="tp4">
+                <button class="algo-btn" data-algo="md5" data-desc="128 bits - Collisions (cassé)">MD5</button>
+                <button class="algo-btn" data-algo="sha256" data-desc="256 bits - Bitcoin/TLS">SHA-256</button>
+                <button class="algo-btn" data-algo="sha512" data-desc="512 bits - 64 bits CPU">SHA-512</button>
+                <button class="algo-btn" data-algo="hmac" data-desc="Hash avec clé secrète">HMAC</button>
+                <button class="algo-btn" data-algo="avalanche" data-desc="Démonstration 50%">Effet Avalanche</button>
+            </div>
+            <!-- TP5 -->
+            <div class="algo-list" id="tp5">
+                <button class="algo-btn" data-algo="rsa_sign" data-desc="Signature avec RSA">RSA-PSS</button>
+                <button class="algo-btn" data-algo="dsa" data-desc="Digital Signature Algorithm">DSA</button>
+                <button class="algo-btn" data-algo="ecdsa" data-desc="Elliptic Curve DSA">ECDSA</button>
+                <button class="algo-btn" data-algo="elgamal_sign" data-desc="Signature ElGamal">ElGamal Sign</button>
+            </div>
+            <!-- TP6 -->
+            <div class="algo-list" id="tp6">
+                <button class="algo-btn" data-algo="bluetooth" data-desc="Pairing ECDH + AES-CCM">Bluetooth</button>
+                <button class="algo-btn" data-algo="wifi" data-desc="4-Way Handshake">Wi-Fi WPA2</button>
+                <button class="algo-btn" data-algo="wpa3" data-desc="SAE Dragonfly">Wi-Fi WPA3</button>
+                <button class="algo-btn" data-algo="vote" data-desc="RSA + Signatures">Vote Électronique</button>
+                <button class="algo-btn" data-algo="homomorphic" data-desc="Principe de comptage">Vote Homomorphique</button>
+                <button class="algo-btn" data-algo="socket_tcp" data-desc="Communication sécurisée">Socket TCP</button>
+                <button class="algo-btn" data-algo="socket_udp" data-desc="Communication UDP">Socket UDP</button>
+            </div>
+
+            <div class="algo-desc-box" id="algoDescBox">
+                <span class="algo-desc-icon">ℹ️</span>
+                <span id="algoDescText">Attaque par force brute intégrée</span>
+            </div>
+        </aside>
+
+        <!-- Center Panel: I/O -->
+        <section class="panel panel-center">
+            <!-- Input -->
+            <div class="io-section">
+                <div class="io-header">
+                    <h3>📝 Entrée</h3>
+                    <div class="io-actions">
+                        <button class="btn-sm" id="btnLoadFile" title="Charger un fichier">📁 Fichier</button>
+                        <input type="file" id="fileInput" accept=".txt" hidden>
+                        <button class="btn-sm" id="btnExample" title="Charger un exemple">📄 Exemple</button>
+                        <button class="btn-sm btn-danger" id="btnClearInput" title="Effacer">🗑️</button>
+                    </div>
+                </div>
+                <textarea id="inputText" placeholder="Entrez votre texte ici..." spellcheck="false"></textarea>
+            </div>
+
+            <!-- Options bar -->
+            <div class="options-bar">
+                <div class="option-group">
+                    <label for="keyInput">🔑 Clé</label>
+                    <input type="text" id="keyInput" value="secretkey123" spellcheck="false">
+                </div>
+                <div class="option-group">
+                    <label for="ivInput">🔄 IV/Nonce</label>
+                    <input type="text" id="ivInput" value="12345678" spellcheck="false">
+                </div>
+                <div class="mode-group">
+                    <label class="mode-radio">
+                        <input type="radio" name="mode" value="encrypt" checked> <span>Chiffrer</span>
+                    </label>
+                    <label class="mode-radio">
+                        <input type="radio" name="mode" value="decrypt"> <span>Déchiffrer</span>
+                    </label>
+                    <label class="mode-radio">
+                        <input type="radio" name="mode" value="sign"> <span>Signer</span>
+                    </label>
+                    <label class="mode-radio">
+                        <input type="radio" name="mode" value="verify"> <span>Vérifier</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Execute button -->
+            <button class="btn-execute" id="btnExecute">
+                <span class="btn-execute-icon">▶</span>
+                <span>EXÉCUTER</span>
+                <div class="btn-execute-glow"></div>
+            </button>
+
+            <!-- Output -->
+            <div class="io-section">
+                <div class="io-header">
+                    <h3>📤 Sortie</h3>
+                    <div class="io-actions">
+                        <button class="btn-sm" id="btnSaveOutput" title="Sauvegarder">💾 Sauver</button>
+                        <button class="btn-sm" id="btnCopyOutput" title="Copier">📋 Copier</button>
+                    </div>
+                </div>
+                <textarea id="outputText" readonly placeholder="Le résultat apparaîtra ici..." spellcheck="false"></textarea>
+            </div>
+            <div class="exec-time" id="execTime"></div>
+        </section>
+
+        <!-- Right Panel: Keys & Log -->
+        <aside class="panel panel-right">
+            <!-- Key Management -->
+            <div class="key-section">
+                <h3>🔑 Gestion des clés</h3>
+                <div class="key-status" id="keyStatus">
+                    <p>ℹ️ Sélectionnez un algorithme asymétrique pour générer des clés</p>
+                </div>
+                <div class="key-buttons">
+                    <button class="btn-key" data-keytype="rsa">RSA 2048</button>
+                    <button class="btn-key" data-keytype="dh">DH</button>
+                    <button class="btn-key" data-keytype="ecc">ECC</button>
+                    <button class="btn-key" data-keytype="elgamal">ElGamal</button>
+                </div>
+            </div>
+
+            <!-- Log -->
+            <div class="log-section">
+                <div class="log-header">
+                    <h3>📋 Journal</h3>
+                    <button class="btn-sm btn-danger" id="btnClearLog">Effacer</button>
+                </div>
+                <div class="log-content" id="logContent"></div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

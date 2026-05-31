@@ -1,12 +1,9 @@
-# secure_server.py - Serveur sécurisé
-# ============================================================
 
 import socket
 import threading
 import os
 import sys
 from crypto_utils import CryptoTools, create_secure_packet, parse_secure_packet
-
 
 # Configuration
 LISTEN_HOST = '0.0.0.0'
@@ -16,12 +13,10 @@ LISTEN_PORT = 65432
 SERVER_PRIVATE_KEY = "keys/server_private_key.pem"
 CLIENT_PUBLIC_KEY = "keys/client_public_key.pem"
 
-
 def save_message(message: str, filename: str = "server_messages.txt"):
     """Enregistre un message dans un fichier."""
     with open(filename, "a", encoding="utf-8") as f:
         f.write(message + "\n")
-
 
 def receive_messages(conn, server_private_key, client_public_key):
     """Thread de réception des messages."""
@@ -46,7 +41,6 @@ def receive_messages(conn, server_private_key, client_public_key):
             if not data:
                 break
 
-            # Déchiffrer et vérifier
             plaintext, signature_valid = parse_secure_packet(
                 data,
                 server_private_key,
@@ -65,7 +59,6 @@ def receive_messages(conn, server_private_key, client_public_key):
         except Exception as e:
             print(f"\n[Erreur réception]: {e}")
             break
-
 
 def send_messages(conn, server_private_key, client_public_key):
     """Envoi des messages."""
@@ -91,7 +84,6 @@ def send_messages(conn, server_private_key, client_public_key):
         except Exception as e:
             print(f"[Erreur envoi]: {e}")
             break
-
 
 def start_server():
     """Démarre le serveur sécurisé."""
@@ -149,7 +141,6 @@ def start_server():
 
     except Exception as e:
         print(f"\n[!] Erreur: {e}")
-
 
 if __name__ == "__main__":
     start_server()

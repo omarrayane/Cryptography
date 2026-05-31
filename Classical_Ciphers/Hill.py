@@ -1,13 +1,11 @@
 import numpy as np
 
-
 def inverse_modulaire(a: int, m: int):
     a = a % m
     for x in range(1, m):
         if (a * x) % m == 1:
             return x
     return None
-
 
 def matrix_mod_inverse(matrix: np.ndarray, modulus: int) -> np.ndarray:
 
@@ -29,7 +27,6 @@ def matrix_mod_inverse(matrix: np.ndarray, modulus: int) -> np.ndarray:
     inverse = (det_inv * adjoint) % modulus
     return inverse
 
-
 def text_to_vector(text, n):
     """Convertit un texte en vecteur de nombres (a=0,..., z=25)."""
     text = ''.join(c for c in text if c.isalpha()).lower()
@@ -41,7 +38,6 @@ def text_to_vector(text, n):
         vector = [ord(text[i + j]) - ord('a') for j in range(n)]
         vectors.append(vector)
     return vectors, text
-
 
 def hill_encrypt(text: str, key_matrix: np.ndarray) -> str:
 
@@ -56,12 +52,10 @@ def hill_encrypt(text: str, key_matrix: np.ndarray) -> str:
 
     return result
 
-
 def hill_decrypt(text: str, key_matrix: np.ndarray) -> str:
 
     inverse_key = matrix_mod_inverse(key_matrix, 26)
     return hill_encrypt(text, inverse_key)
-
 
 def known_plaintext_attack(plaintext, ciphertext, n):
     """
@@ -87,18 +81,15 @@ def known_plaintext_attack(plaintext, ciphertext, n):
     except ValueError:
         raise ValueError("La matrice P n'est pas inversible modulo 26")
 
-
 def hill_encrypt_with_padding(text, key_matrix):
     """Chiffre avec gestion automatique du padding."""
     return hill_encrypt(text, key_matrix)
-
 
 def hill_decrypt_with_padding(text, key_matrix):
     """Déchiffre et retire le padding."""
     decrypted = hill_decrypt(text, key_matrix)
     # Retirer les 'x' de padding (simple, pourrait être amélioré)
     return decrypted
-
 
 def test_hill():
     print("===== TEST HILL =====")
@@ -140,7 +131,6 @@ def test_hill():
     print(f"Chiffré  : {encrypted3}")
     print(f"Déchiffré: {decrypted3}")
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      CHIFFREMENT DE HILL")
@@ -150,7 +140,6 @@ def menu():
     print("3. Attaque à clair connu")
     print("4. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     while True:
@@ -229,7 +218,6 @@ if __name__ == "__main__":
                     recovered_key = known_plaintext_attack(full_plaintext, full_ciphertext, n)
                     print(f"\n✅ Matrice clé retrouvée :\n{recovered_key}")
 
-                    # Tester avec un nouveau message
                     test_msg = input("\nMessage de test pour vérifier : ")
                     encrypted = hill_encrypt(test_msg, recovered_key)
                     print(f"Message chiffré avec clé retrouvée : {encrypted}")

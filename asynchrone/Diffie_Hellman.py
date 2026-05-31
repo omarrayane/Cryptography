@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
 # Diffie_Hellman.py - Échange de clés Diffie-Hellman (Version interactive)
-# ============================================================
 
 import random
 import hashlib
 import math
 
-# ============================================================
-#  FONCTIONS MATHÉMATIQUES DE BASE
-# ============================================================
-
 def is_prime(n, k=10):
-    """Test de primalité de Miller-Rabin."""
     if n < 2:
         return False
     if n in [2, 3]:
@@ -26,7 +20,6 @@ def is_prime(n, k=10):
         d //= 2
         r += 1
     
-    # Tester k fois
     for _ in range(k):
         a = random.randint(2, n - 2)
         x = pow(a, d, n)
@@ -40,13 +33,10 @@ def is_prime(n, k=10):
             return False
     return True
 
-
 def is_primitive_root(g, p):
-    """Vérifie si g est une racine primitive modulo p."""
     if g >= p or g <= 1:
         return False
     
-    # Calculer les facteurs premiers de p-1
     phi = p - 1
     factors = set()
     n = phi
@@ -66,23 +56,14 @@ def is_primitive_root(g, p):
             return False
     return True
 
-
 def find_primitive_root(p):
-    """Trouve une racine primitive modulo p."""
     for g in range(2, p):
         if is_primitive_root(g, p):
             return g
     return 2  # Fallback
 
-
 def mod_inverse(a, p):
-    """Calcule l'inverse modulaire de a modulo p."""
     return pow(a, p - 2, p)
-
-
-# ============================================================
-#  CŒUR DE DIFFIE-HELLMAN
-# ============================================================
 
 class DiffieHellman:
     """Classe pour l'échange de clés Diffie-Hellman."""
@@ -106,7 +87,6 @@ class DiffieHellman:
                 self.p = p
                 break
         
-        # Trouver un générateur
         self.g = find_primitive_root(self.p)
         
         print(f"   ✅ p = {self.p}")
@@ -143,11 +123,6 @@ class DiffieHellman:
         """Dérive une clé AES à partir du secret partagé."""
         secret_bytes = str(self.shared_secret).encode('utf-8')
         return hashlib.sha256(secret_bytes).digest()[:length]
-
-
-# ============================================================
-#  ATTAQUE MAN-IN-THE-MIDDLE
-# ============================================================
 
 class MITMAttacker:
     """Simulation d'une attaque Man-in-the-Middle."""
@@ -187,7 +162,6 @@ class MITMAttacker:
         print("\n📌 Étape 4: Eve intercepte et remplace")
         print(f"   Eve envoie E à Alice à la place de B")
         
-        # Calcul des secrets partagés
         self.shared_with_alice = pow(alice_public, self.private_key, p)
         self.shared_with_bob = pow(bob_public, self.private_key, p)
         
@@ -199,11 +173,6 @@ class MITMAttacker:
         print("   Elle lit, modifie, puis rechiffre pour l'autre partie.")
         
         return self.shared_with_alice, self.shared_with_bob
-
-
-# ============================================================
-#  INTERFACE UTILISATEUR
-# ============================================================
 
 def demo_normal_exchange():
     """Démonstration d'un échange DH normal."""
@@ -246,7 +215,6 @@ def demo_normal_exchange():
     print(f"   Alice envoie A = {A} à Bob")
     print(f"   Bob envoie B = {B} à Alice")
     
-    # Secrets
     secret_alice = dh.compute_shared_secret(B)
     print(f"\n🔐 Alice calcule: B^a mod p = {B}^{a} mod {dh.p} = {secret_alice}")
     
@@ -264,7 +232,6 @@ def demo_normal_exchange():
         print(f"   🔐 Clé AES dérivée: {aes_key.hex()[:32]}...")
     else:
         print("   ❌ ERREUR: Les secrets sont différents!")
-
 
 def demo_mitm_attack():
     """Démonstration de l'attaque Man-in-the-Middle."""
@@ -299,7 +266,6 @@ def demo_mitm_attack():
     attacker = MITMAttacker()
     attacker.generate_keypair((p, g))
     
-    # Attaque
     attacker.intercept_and_replace(A, B, (p, g))
     
     print("\n📊 RÉSUMÉ DE L'ATTAQUE")
@@ -313,21 +279,18 @@ def demo_mitm_attack():
     print("   → Utiliser des signatures numériques (ECDSA)")
     print("   → Authentifier les clés publiques via PKI")
 
-
 def demo_authenticated_exchange():
     """Démonstration d'un échange DH authentifié par signature."""
     print("\n" + "=" * 60)
     print("  🔐 ÉCHANGE DH AUTHENTIFIÉ PAR SIGNATURE")
     print("=" * 60)
     
-    # Simuler des signatures (simplifié)
     print("\n📌 PRINCIPE")
     print("-" * 40)
     print("   Alice signe sa clé publique A avec sa clé privée")
     print("   Bob vérifie la signature avec la clé publique d'Alice")
     print("   → L'attaque MITM est impossible car Eve ne peut pas falsifier la signature")
     
-    # Simulation
     dh = DiffieHellman()
     dh.generate_parameters(128)
     
@@ -348,7 +311,6 @@ def demo_authenticated_exchange():
     
     print("\n✅ Échange authentifié réussi!")
     print(f"   Secret partagé: {secret}")
-
 
 def interactive_exchange():
     """Échange DH interactif avec saisie utilisateur."""
@@ -387,7 +349,6 @@ def interactive_exchange():
     B = pow(g, b, p)
     print(f"   Clé publique B = {B}")
     
-    # Secrets
     secret_alice = pow(B, a, p)
     secret_bob = pow(A, b, p)
     
@@ -406,7 +367,6 @@ def interactive_exchange():
     else:
         print("\n❌ Erreur! Les secrets sont différents.")
 
-
 def menu():
     print("\n" + "=" * 55)
     print("  🔐 DIFFIE-HELLMAN KEY EXCHANGE")
@@ -417,7 +377,6 @@ def menu():
     print("4. Échange DH authentifié par signature")
     print("5. Quitter")
     print("-" * 55)
-
 
 if __name__ == "__main__":
     while True:

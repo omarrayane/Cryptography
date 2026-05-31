@@ -1,11 +1,9 @@
 # MD5.py - Message Digest 5
-# ============================================================
 
 import hashlib
 import time
 import os
 from collections import Counter
-
 
 def md5_hash(data):
     """
@@ -14,7 +12,6 @@ def md5_hash(data):
     if isinstance(data, str):
         data = data.encode('utf-8')
     return hashlib.md5(data).hexdigest()
-
 
 def md5_file_hash(filename):
     """
@@ -26,7 +23,6 @@ def md5_file_hash(filename):
             md5.update(chunk)
     return md5.hexdigest()
 
-
 def avalanche_effect_md5():
     """
     Calcule l'effet avalanche : modification d'1 bit du message.
@@ -37,14 +33,11 @@ def avalanche_effect_md5():
     print("  (Modification d'1 bit du message)")
     print("=" * 60)
 
-    # Message original
     original = b"Hello World"
 
-    # Message modifié (1 bit différent)
     modified = bytearray(original)
     modified[0] ^= 0x01  # Modifier 1 bit
 
-    # Calcul des hash
     h1 = hashlib.md5(original).digest()
     h2 = hashlib.md5(bytes(modified)).digest()
 
@@ -71,7 +64,6 @@ def avalanche_effect_md5():
     else:
         print(f"   ⚠️  Ratio anormal ({ratio:.2f}%)")
 
-
 def benchmark_md5(sizes_mb=[1, 10, 100]):
     """
     Benchmark MD5 sur différentes tailles.
@@ -92,7 +84,6 @@ def benchmark_md5(sizes_mb=[1, 10, 100]):
 
         throughput = size_mb / elapsed if elapsed > 0 else 0
         print(f"{size_mb} Mo{'':<10} {elapsed:<15.4f} {throughput:<15.2f}")
-
 
 def demonstrate_collision_vulnerability():
     """
@@ -118,7 +109,6 @@ def demonstrate_collision_vulnerability():
     print("   - Checksums de fichiers (intégrité non critique)")
     print("   - Hachage de données non sensibles")
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      MD5 - MESSAGE DIGEST 5")
@@ -130,7 +120,6 @@ def menu():
     print("5. Vulnérabilités MD5")
     print("6. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     while True:

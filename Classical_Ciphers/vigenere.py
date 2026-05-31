@@ -2,7 +2,6 @@ from collections import Counter
 from math import gcd
 from functools import reduce
 
-
 def vigenere_encrypt(text: str, key: str) -> str:
     result = ""
     key = key.upper()
@@ -23,7 +22,6 @@ def vigenere_encrypt(text: str, key: str) -> str:
 
     return result
 
-
 def vigenere_decrypt(text: str, key: str) -> str:
     result = ""
     key = key.upper()
@@ -43,7 +41,6 @@ def vigenere_decrypt(text: str, key: str) -> str:
             result += char
 
     return result
-
 
 def find_repeated_sequences(ciphertext: str, min_length: int = 3):
     """
@@ -67,7 +64,6 @@ def find_repeated_sequences(ciphertext: str, min_length: int = 3):
 
     return gaps
 
-
 def kasiski_key_length(ciphertext: str):
     """
     Calcule la longueur probable de la clé avec le test de Kasiski.
@@ -82,7 +78,6 @@ def kasiski_key_length(ciphertext: str):
 
     return key_length if key_length > 1 else None
 
-
 def split_by_key_length(ciphertext: str, key_length: int):
     """
     Découpe le texte en sous-séquences selon la longueur de la clé.
@@ -94,7 +89,6 @@ def split_by_key_length(ciphertext: str, key_length: int):
         groups[i % key_length] += char
 
     return groups
-
 
 def calculate_ic(text: str) -> float:
     """
@@ -108,7 +102,6 @@ def calculate_ic(text: str) -> float:
     counts = Counter(text)
     ic = sum(count * (count - 1) for count in counts.values()) / (n * (n - 1))
     return ic
-
 
 def find_shift_by_frequency(group: str):
     """
@@ -138,7 +131,6 @@ def find_shift_by_frequency(group: str):
 
     for shift in range(26):
         # Score = corrélation entre fréquences observées (après décalage inverse)
-        # et fréquences de référence françaises
         score = sum(
             (counts.get(chr((ord(letter) - ord('A') + shift) % 26 + ord('A')), 0) / n)
             * french_freq[letter]
@@ -149,7 +141,6 @@ def find_shift_by_frequency(group: str):
             best_shift = shift
 
     return best_shift
-
 
 def find_vigenere_key(ciphertext: str, key_length: int):
     """
@@ -164,7 +155,6 @@ def find_vigenere_key(ciphertext: str, key_length: int):
 
     key = ''.join(chr(shift + ord('A')) for shift in shifts)
     return key, shifts
-
 
 def vigenere_crack(ciphertext: str):
     """
@@ -208,7 +198,6 @@ def vigenere_crack(ciphertext: str):
     plaintext = vigenere_decrypt(ciphertext, key)
     return plaintext, key, key_length
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      CHIFFREMENT DE VIGENÈRE")
@@ -218,7 +207,6 @@ def menu():
     print("3. Attaquer un message chiffré (Kasiski + IC)")
     print("4. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     TEST_CIPHERTEXT = "CLCJSGEEXJGGOETFEUUUPEIRMOOBTGGRCOAKTLCHRCODGGOTDEFVCJJFHSEFFVKHEPFRGFSVRUGMAOFMGMEVURGTETBCJJFHSEGEEFJFHFRGOTGTMCOIGSEUMEEIIHGRGEEXJGGOETFEZJGGDOONERSEURUGMAVPTCMIVFDGTSATTGNEUEEEIIHGRGNEPUQWFLGTDGVXEPRTFSRPNFBNVTCQONCJSUFNVVNGDLGGSGDRGUEEPMOVNG"

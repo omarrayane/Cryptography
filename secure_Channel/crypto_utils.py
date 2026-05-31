@@ -1,5 +1,3 @@
-# crypto_utils.py - Utilitaires cryptographiques
-# ============================================================
 
 import os
 import json
@@ -8,7 +6,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
-
 
 class CryptoTools:
     """Outils cryptographiques pour communication sécurisée"""
@@ -70,12 +67,10 @@ class CryptoTools:
         # Générer clé AES aléatoire
         aes_key = AESGCM.generate_key(bit_length=256)
 
-        # Chiffrer avec AES-GCM
         cipher = AESGCM(aes_key)
         nonce = os.urandom(12)
         ciphertext = cipher.encrypt(nonce, plaintext_bytes, None)
 
-        # Chiffrer la clé AES avec RSA-OAEP
         encrypted_key = peer_public_key.encrypt(
             aes_key,
             padding.OAEP(
@@ -92,7 +87,6 @@ class CryptoTools:
         """
         Déchiffre un message avec AES-256 GCM.
         """
-        # Déchiffrer la clé AES
         aes_key = rsa_private_key.decrypt(
             encrypted_key,
             padding.OAEP(
@@ -102,12 +96,10 @@ class CryptoTools:
             )
         )
 
-        # Déchiffrer le message
         cipher = AESGCM(aes_key)
         plaintext = cipher.decrypt(nonce, ciphertext, None)
 
         return plaintext
-
 
 def create_secure_packet(message: str, rsa_private_key, peer_public_key) -> bytes:
     """
@@ -135,7 +127,6 @@ def create_secure_packet(message: str, rsa_private_key, peer_public_key) -> byte
 
     return json.dumps(packet).encode()
 
-
 def parse_secure_packet(packet_bytes: bytes, rsa_private_key, peer_public_key) -> tuple:
     """
     Parse et vérifie un paquet sécurisé.
@@ -148,7 +139,6 @@ def parse_secure_packet(packet_bytes: bytes, rsa_private_key, peer_public_key) -
     ciphertext = bytes.fromhex(packet["ciphertext"])
     signature = bytes.fromhex(packet["signature"])
 
-    # Déchiffrer le message
     plaintext = CryptoTools.decrypt_message(
         encrypted_key, nonce, ciphertext, rsa_private_key
     )

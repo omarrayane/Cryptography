@@ -1,15 +1,9 @@
 # SHA256.py - Secure Hash Algorithm 2 (256 bits)
-# ============================================================
 
 import hashlib
 import time
 import os
 import struct
-
-
-# ============================================================
-#  CONSTANTES SHA-256
-# ============================================================
 
 # Constantes K[i] = premiers 32 bits des racines cubiques des 64 premiers nombres premiers
 K = [
@@ -29,54 +23,29 @@ H0 = [
     0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
 ]
 
-
-# ============================================================
-#  OPÉRATIONS SHA-256
-# ============================================================
-
 def rotr(x, n):
-    """Rotation droite."""
     return ((x >> n) | (x << (32 - n))) & 0xFFFFFFFF
 
-
 def shr(x, n):
-    """Décalage droite."""
     return (x >> n) & 0xFFFFFFFF
 
-
 def ch(x, y, z):
-    """Fonction de choix."""
     return (x & y) ^ ((~x) & z)
 
-
 def maj(x, y, z):
-    """Fonction de majorité."""
     return (x & y) ^ (x & z) ^ (y & z)
 
-
 def sigma0(x):
-    """Sigma 0."""
     return rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22)
 
-
 def sigma1(x):
-    """Sigma 1."""
     return rotr(x, 6) ^ rotr(x, 11) ^ rotr(x, 25)
 
-
 def gamma0(x):
-    """Gamma 0."""
     return rotr(x, 7) ^ rotr(x, 18) ^ shr(x, 3)
 
-
 def gamma1(x):
-    """Gamma 1."""
     return rotr(x, 17) ^ rotr(x, 19) ^ shr(x, 10)
-
-
-# ============================================================
-#  IMPLÉMENTATION PÉDAGOGIQUE DE SHA-256
-# ============================================================
 
 def sha256_padding(message: bytes) -> bytes:
     """
@@ -85,18 +54,14 @@ def sha256_padding(message: bytes) -> bytes:
     original_length = len(message) * 8  # en bits
     message = bytearray(message)
 
-    # Ajouter 0x80
     message.append(0x80)
 
-    # Ajouter des 0 jusqu'à ce que longueur ≡ 56 mod 64
     while (len(message) * 8) % 512 != 448:
         message.append(0x00)
 
-    # Ajouter la longueur originale sur 64 bits (big endian)
     message += struct.pack('>Q', original_length)
 
     return bytes(message)
-
 
 def sha256_compress(block: bytes, state: list) -> list:
     """
@@ -110,7 +75,6 @@ def sha256_compress(block: bytes, state: list) -> list:
     for i in range(16, 64):
         w[i] = (gamma1(w[i-2]) + w[i-7] + gamma0(w[i-15]) + w[i-16]) & 0xFFFFFFFF
 
-    # Initialisation des variables de travail
     a, b, c, d, e, f, g, h = state
 
     # Compression (64 tours)
@@ -141,7 +105,6 @@ def sha256_compress(block: bytes, state: list) -> list:
 
     return new_state
 
-
 def sha256_pedagogical(message: bytes) -> str:
     """
     Implémentation pédagogique de SHA-256.
@@ -164,11 +127,6 @@ def sha256_pedagogical(message: bytes) -> str:
 
     return result.hex()
 
-
-# ============================================================
-#  FONCTIONS UTILITAIRES
-# ============================================================
-
 def sha256_hash(data):
     """
     Hash SHA-256 avec hashlib (standard).
@@ -176,7 +134,6 @@ def sha256_hash(data):
     if isinstance(data, str):
         data = data.encode('utf-8')
     return hashlib.sha256(data).hexdigest()
-
 
 def sha256_file_hash(filename):
     """
@@ -187,7 +144,6 @@ def sha256_file_hash(filename):
         for chunk in iter(lambda: f.read(4096), b''):
             sha256.update(chunk)
     return sha256.hexdigest()
-
 
 def verify_integrity():
     """
@@ -203,10 +159,8 @@ def verify_integrity():
     with open(test_file, "w") as f:
         f.write("Ceci est un fichier important")
 
-    # Calcul du hash
     actual_hash = sha256_file_hash(test_file)
 
-    # Hash officiel (simulé)
     official_hash = input(f"Entrez le hash officiel de {test_file} : ")
 
     print(f"\nHash calculé : {actual_hash}")
@@ -219,7 +173,6 @@ def verify_integrity():
 
     # Nettoyage
     os.remove(test_file)
-
 
 def avalanche_effect_sha256():
     """
@@ -254,7 +207,6 @@ def avalanche_effect_sha256():
     if 45 < ratio < 55:
         print("   ✅ Effet avalanche vérifié (≈50%)")
 
-
 def benchmark_sha256(sizes_mb=[1, 10, 100]):
     """
     Benchmark SHA-256.
@@ -275,7 +227,6 @@ def benchmark_sha256(sizes_mb=[1, 10, 100]):
 
         throughput = size_mb / elapsed if elapsed > 0 else 0
         print(f"{size_mb} Mo{'':<10} {elapsed:<15.4f} {throughput:<15.2f}")
-
 
 def compare_with_hashlib():
     """
@@ -305,7 +256,6 @@ def compare_with_hashlib():
         display_msg = msg.decode()[:27] + "..." if len(msg) > 27 else msg.decode()
         print(f"{display_msg:<30} {ped_result:<35} {lib_result:<35} {match:<10}")
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      SHA-256 - SECURE HASH ALGORITHM")
@@ -318,7 +268,6 @@ def menu():
     print("6. Comparer implémentation vs hashlib")
     print("7. Quitter")
     print("-" * 50)
-
 
 if __name__ == "__main__":
     while True:

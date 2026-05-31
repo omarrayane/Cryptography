@@ -2,7 +2,6 @@ from math import gcd
 from collections import Counter
 from functools import reduce
 
-
 def find_repeated_sequences(ciphertext, min_length=3):
     """
     Trouve les séquences répétées et calcule les écarts entre leurs positions.
@@ -25,7 +24,6 @@ def find_repeated_sequences(ciphertext, min_length=3):
     
     return gaps, sequences
 
-
 def find_key_length(ciphertext):
     """
     Longueur probable de la clé = PGCD des écarts.
@@ -40,7 +38,6 @@ def find_key_length(ciphertext):
     
     return key_length if key_length > 1 else None
 
-
 def test_multiple_key_lengths(ciphertext, max_len=20):
     """
     Retourne les longueurs de clé possibles triées par probabilité.
@@ -49,7 +46,6 @@ def test_multiple_key_lengths(ciphertext, max_len=20):
     if not gaps:
         return []
     
-    # Calculer les PGCD de différentes combinaisons
     all_gcds = []
     n = len(gaps)
     for i in range(min(n, 10)):
@@ -61,7 +57,6 @@ def test_multiple_key_lengths(ciphertext, max_len=20):
     # Compter les fréquences
     freq = Counter(all_gcds)
     return sorted(freq.keys(), key=lambda x: freq[x], reverse=True)[:5]
-
 
 def afficher_sequences(ciphertext):
     """
@@ -90,7 +85,6 @@ def afficher_sequences(ciphertext):
     if possible:
         print(f"📌 Autres longueurs possibles : {possible}")
 
-
 def menu():
     print("\n" + "=" * 50)
     print("      TEST DE KASISKI")
@@ -99,9 +93,7 @@ def menu():
     print("2. Quitter")
     print("-" * 50)
 
-
 if __name__ == "__main__":
-    # Exemple de texte chiffré Vigenère pour test
     TEST_CIPHERTEXT = "CLCJSGEEXJGGOETFEUUUPEIRMOOBTGGRCOAKTLCHRCODGGOTDEFVCJJFHSEFFVKHEPFRGFSVRUGMAOFMGMEVURGTETBCJJFHSEGEEFJFHFRGOTGTMCOIGSEUMEEIIHGRGEEXJGGOETFEZJGGDOONERSEURUGMAVPTCMIVFDGTSATTGNEUEEEIIHGRGNEPUQWFLGTDGVXEPRTFSRPNFBNVTCQONCJSUFNVVNGDLGGSGDRGUEEPMOVNG"
     
     while True:

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# web_gui.py - Application Cryptographique Web Complète
 # Version web de CryptoSuite Complete (Flask)
 
 from flask import Flask, render_template, request, jsonify
@@ -31,8 +30,6 @@ keys = {
     'ecc_private': None,
     'ecc_public': None,
 }
-
-# ==================== ALGORITHMES ====================
 
 def cesar_encrypt(text, shift):
     result = ""
@@ -337,13 +334,9 @@ Multiplication des chiffrés:
 ✅ Anonymat total préservé
 ⚠️ Complexité algorithmique élevée"""
 
-
-# ==================== ROUTES ====================
-
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/api/execute', methods=['POST'])
 def execute():
@@ -362,7 +355,6 @@ def execute():
         start = time.time()
         result = ""
 
-        # TP1
         if algo == "cesar":
             shift = int(key) if key.isdigit() else 3
             result = cesar_encrypt(text, shift) if mode == "encrypt" else cesar_decrypt(text, shift)
@@ -380,7 +372,6 @@ def execute():
         elif algo == "freq":
             result = frequency_analysis(text)
 
-        # TP2
         elif algo == "rc4":
             result = rc4(text, key, mode)
         elif algo == "des":
@@ -396,7 +387,6 @@ def execute():
         elif algo in ["twofish", "serpent", "rc6", "mars"]:
             result = f"{algo.upper()} - Finaliste AES\nChiffré (simulation): {hashlib.sha256((text + key).encode()).hexdigest()[:16]}"
 
-        # TP3
         elif algo == "rsa":
             if mode == "encrypt":
                 if not keys['rsa_public']:
@@ -446,7 +436,6 @@ def execute():
         elif algo == "ecdh":
             result = "ECDH P-256: Secret partagé établi\nClé AES dérivée avec HKDF-SHA256"
 
-        # TP4
         elif algo == "md5":
             result = hashlib.md5(text.encode()).hexdigest()
         elif algo == "sha256":
@@ -458,7 +447,6 @@ def execute():
         elif algo == "avalanche":
             result = avalanche_demo()
 
-        # TP5
         elif algo == "rsa_sign":
             if mode == "sign":
                 result = f"Signature RSA-PSS: {hashlib.sha256(text.encode()).hexdigest()[:32]}... (simulation)"
@@ -471,7 +459,6 @@ def execute():
         elif algo == "elgamal_sign":
             result = "Signature ElGamal (logarithme discret)"
 
-        # TP6
         elif algo == "bluetooth":
             result = bluetooth_simulate()
         elif algo == "wifi":
@@ -495,7 +482,6 @@ def execute():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @app.route('/api/gen_keys', methods=['POST'])
 def gen_keys_route():
     data = request.json
@@ -516,7 +502,6 @@ def gen_keys_route():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 def gen_rsa_keys():
     keys['rsa_private'] = rsa_mod.generate_private_key(
         public_exponent=65537, key_size=2048, backend=default_backend()
@@ -526,7 +511,6 @@ def gen_rsa_keys():
     e = keys['rsa_public'].public_numbers().e
     return f"✅ Clés RSA-2048 générées\n\nClé publique (modulus): {n}...\nExposant: {e}"
 
-
 def gen_dh_keys():
     keys['dh_params'] = dh.generate_parameters(generator=2, key_size=2048, backend=default_backend())
     keys['dh_private'] = keys['dh_params'].generate_private_key()
@@ -535,12 +519,10 @@ def gen_dh_keys():
     g = keys['dh_params'].parameter_numbers().g
     return f"✅ Paramètres DH-2048 générés\n\np (modulus): {p}...\ng (generator): {g}"
 
-
 def gen_ecc_keys():
     keys['ecc_private'] = ec.generate_private_key(ec.SECP256R1(), default_backend())
     keys['ecc_public'] = keys['ecc_private'].public_key()
     return "✅ Clés ECC P-256 générées\n\nCourbe: SECP256R1 (NIST P-256)\nSécurité équivalente: RSA-3072"
-
 
 def gen_elgamal_keys():
     p = 257
@@ -549,7 +531,6 @@ def gen_elgamal_keys():
     y = pow(g, x, p)
     keys['elgamal_keys'] = {'p': p, 'g': g, 'x': x, 'y': y}
     return f"✅ Clés ElGamal générées\n\np (premier): {p}\ng (générateur): {g}\ny (clé publique): {y}\nx (clé privée): {x}"
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

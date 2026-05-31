@@ -2,12 +2,10 @@ import unicodedata
 import string
 from collections import Counter
 
-
 def normalize_text(text):
     """Supprime les accents et met en minuscules."""
     text = unicodedata.normalize('NFD', text)
     return ''.join(c for c in text if unicodedata.category(c) != 'Mn').lower()
-
 
 def indice_coincidence(text):
     """
@@ -23,7 +21,6 @@ def indice_coincidence(text):
     counts = Counter(letters)
     somme = sum(n * (n - 1) for n in counts.values())
     return somme / (N * (N - 1))
-
 
 def analyser_texte():
     """Interface interactive pour analyser un texte."""
@@ -53,7 +50,6 @@ def analyser_texte():
         print("\n⚠️ IC élevé → texte très répétitif ou langue particulière")
     else:
         print("\n⚠️ IC bas → texte court, aléatoire, ou chiffré")
-
 
 if __name__ == '__main__':
     analyser_texte()

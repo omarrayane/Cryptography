@@ -1,5 +1,3 @@
-# RSA.py - RSA avec OAEP et chiffrement hybride
-# ============================================================
 
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes, serialization
@@ -10,10 +8,7 @@ from Crypto.Util.Padding import pad, unpad
 import os
 import time
 
-
-# ============================================================
 #  GÉNÉRATION DE CLÉS RSA
-# ============================================================
 
 def generate_rsa_key_pair(key_size: int = 2048):
     """
@@ -27,7 +22,6 @@ def generate_rsa_key_pair(key_size: int = 2048):
     )
     public_key = private_key.public_key()
     return private_key, public_key
-
 
 def export_keys(private_key, public_key):
     """
@@ -44,7 +38,6 @@ def export_keys(private_key, public_key):
     )
     return private_pem, public_pem
 
-
 def rsa_encrypt_oaep(message: bytes, public_key) -> bytes:
     """
     Chiffre avec RSA-OAEP (sécurisé).
@@ -58,7 +51,6 @@ def rsa_encrypt_oaep(message: bytes, public_key) -> bytes:
         )
     )
     return ciphertext
-
 
 def rsa_decrypt_oaep(ciphertext: bytes, private_key) -> bytes:
     """
@@ -74,17 +66,11 @@ def rsa_decrypt_oaep(ciphertext: bytes, private_key) -> bytes:
     )
     return plaintext
 
-
 def rsa_encrypt_raw(message: bytes, public_key) -> bytes:
     """
     RSA textbook (sans padding) - VULNÉRABLE, ne pas utiliser en production.
     """
     return public_key.encrypt(message, padding.PKCS1v15())
-
-
-# ============================================================
-#  CHIFFREMENT HYBRIDE RSA + AES
-# ============================================================
 
 def hybrid_encrypt(message: bytes, rsa_public_key) -> tuple:
     """
@@ -99,17 +85,14 @@ def hybrid_encrypt(message: bytes, rsa_public_key) -> tuple:
     # Génération clé AES
     aes_key = os.urandom(32)  # AES-256
 
-    # Chiffrement AES-GCM
     iv = os.urandom(12)
     cipher = Cipher(algorithms.AES(aes_key), modes.GCM(iv), backend=default_backend())
     encryptor = cipher.encryptor()
     ciphertext = encryptor.update(message) + encryptor.finalize()
 
-    # Chiffrement de la clé AES avec RSA
     encrypted_key = rsa_encrypt_oaep(aes_key, rsa_public_key)
 
     return encrypted_key, iv, ciphertext, encryptor.tag
-
 
 def hybrid_decrypt(encrypted_key: bytes, iv: bytes, ciphertext: bytes, tag: bytes, rsa_private_key) -> bytes:
     """
@@ -125,7 +108,6 @@ def hybrid_decrypt(encrypted_key: bytes, iv: bytes, ciphertext: bytes, tag: byte
 
     return plaintext
 
-
 def benchmark_hybrid_vs_rsa(data_size_mb: float = 1):
     """
     Compare les performances du chiffrement hybride vs RSA pur.
@@ -140,7 +122,6 @@ def benchmark_hybrid_vs_rsa(data_size_mb: float = 1):
     # Génération des clés RSA
     rsa_priv, rsa_pub = generate_rsa_key_pair(2048)
 
-    # RSA seul (sur un petit message car limité en taille)
     small_data = os.urandom(190)  # 190 bytes max pour RSA-2048 OAEP
 
     start = time.time()
@@ -151,7 +132,6 @@ def benchmark_hybrid_vs_rsa(data_size_mb: float = 1):
     rsa_decrypted = rsa_decrypt_oaep(rsa_encrypted, rsa_priv)
     rsa_dec_time = time.time() - start
 
-    # Chiffrement hybride
     start = time.time()
     enc_key, iv, ciphertext, tag = hybrid_encrypt(data, rsa_pub)
     hybrid_enc_time = time.time() - start
@@ -168,10 +148,7 @@ def benchmark_hybrid_vs_rsa(data_size_mb: float = 1):
     print(f"\n📊 Le chiffrement hybride permet de chiffrer des FICHIERS ENTIERS")
     print(f"   alors que RSA seul est limité à la taille de la clé.")
 
-
-# ============================================================
 #  DÉMONSTRATION TAILLES DE CLÉ
-# ============================================================
 
 def demonstrate_key_sizes():
     """
@@ -195,11 +172,6 @@ def demonstrate_key_sizes():
         print(f"   - Clé publique: {len(pub_pem)} bytes")
         print(f"   - Taille max chiffrée (OAEP): {size//8 - 42} bytes")
 
-
-# ============================================================
-#  MENU
-# ============================================================
-
 def menu():
     print("\n" + "=" * 55)
     print("  RSA (Rivest-Shamir-Adleman)")
@@ -211,7 +183,6 @@ def menu():
     print("5. Comparer les tailles de clés")
     print("6. Quitter")
     print("-" * 55)
-
 
 if __name__ == "__main__":
     while True:
